@@ -32,14 +32,10 @@ const server = http.createServer((req, res) => {
 
     fs.exists(pathname, function (exist) {
       if (!exist) {
-        // if the file is not found, return 404
         res.statusCode = 404;
         res.end(`File ${pathname} not found!`);
         return;
-      }
-
-      // if is a directory, then look for index.html
-      if (fs.statSync(pathname).isDirectory()) {
+      } else if (fs.statSync(pathname).isDirectory()) {
         pathname += '/index.html';
       }
 
