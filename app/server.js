@@ -3,7 +3,9 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const PORT = process.env.PORT || 8080;
-const HOST = process.env.HOST || '127.0.0.1'
+const HOST = process.env.NODE_ENV === 'production'
+  ? null
+  : process.env.HOST || 'localhost'
 
 const mimeType = {
   '.ico': 'image/x-icon',

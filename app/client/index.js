@@ -1,4 +1,5 @@
-const socket = new WebSocket(`ws://${window.location.hostname}:${window.location.port}`);
+const isSec = window.location.protocol === 'https:'
+const socket = new WebSocket(`${isSec ? 'wss' : ws}://${window.location.hostname}:${window.location.port}`);
 
 const messages = document.querySelector('.messages');
 

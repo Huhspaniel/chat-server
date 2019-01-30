@@ -1,3 +1,5 @@
 if (process.NODE_ENV !== 'production') {
     require('./change-watcher');
+} else {
+    require('./app/server');
 }
