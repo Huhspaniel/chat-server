@@ -2,7 +2,7 @@ body {
     min-height: 100vh;
     background-color: #101010;
     margin: 0;
-    font-family: 'Source Code Pro', monospace;
+    font-family: 'Krub', sans-serif;
     font-size: 16px;
     display: flex;
     justify-content: center;
@@ -25,10 +25,10 @@ body {
     --me-color: 0, 140, 114;
 }
 .message {
-    padding: 5px;
+    padding: 8px;
 }
 .message:nth-last-child(even) {
-    background-color: rgba(0, 0, 0, 0.08);
+    background-color: rgba(0, 0, 0, 0.1);
 }
 .message span {
     font-weight: bold;
@@ -62,10 +62,11 @@ span.user {
     grid-template-columns: auto 1fr;
 }
 .user-input span, .user-input input {
-    padding: 5px;
+    padding: 6px;
     border: none;
     background-color: inherit;
     font-size: inherit;
+    font-family: inherit;
     color: rgb(0, 0, 0);
 }
 .user-input input:focus {

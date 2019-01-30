@@ -183,10 +183,10 @@ server.on('upgrade', (req, socket) => {
                   event: 'error',
                   args: ['Username cannot have spaces']
                 }
-              } else if (username.length > 15) {
+              } else if (username.length > 17) {
                 reply = {
                   event: 'error',
-                  args: ['Username cannot exceed 15 characters']
+                  args: ['Username cannot exceed 17 characters']
                 };
               } else {
                 sockets.push(socket);
