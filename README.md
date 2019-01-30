@@ -8,4 +8,4 @@ In managing sending/receiving of different kinds of messages, I implemented an e
 
 # Deployments:
 * AWS: https://chat.huhspaniel.com
-* Heroku: https://chat-server-huhspaniel.herokuapp.com/ (Outdated)
+* Heroku: https://chat-server-huhspaniel.herokuapp.com (Outdated)
