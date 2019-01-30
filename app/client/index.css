@@ -64,10 +64,15 @@ span.user {
 .user-input span, .user-input input {
     padding: 6px;
     border: none;
-    background-color: inherit;
+    background-color: transparent;
     font-size: inherit;
     font-family: inherit;
     color: rgb(0, 0, 0);
+}
+.user-input span {
+    padding-right: 0;
+    display: flex;
+    align-items: center;
 }
 .user-input input:focus {
     outline: none;
