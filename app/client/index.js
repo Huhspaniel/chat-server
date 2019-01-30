@@ -11,7 +11,7 @@ let loggedIn = false;
 let myUsername = null;
 
 socket.addEventListener('message', event => {
-    console.log('Received: ' + event.data);
+    console.log('Received: ', event.data);
     const data = JSON.parse(event.data);
     switch (data.event) {
         case 'chat': {
@@ -19,7 +19,7 @@ socket.addEventListener('message', event => {
             let scrollTop = messages.scrollTop;
             messages.innerHTML = 
             `<div class="chat message">
-                <span class="${username === myUsername ? 'me' : ''}">@${username}:</span> ${chat}
+                <span class="${username === myUsername ? 'me' : 'user'}">@${username}:</span> ${chat}
             </div>` + messages.innerHTML;
             if (messages.scrollHeight - messages.scrollTop > messages.offsetHeight) {
                 messages.scrollTop = scrollTop;
@@ -32,8 +32,8 @@ socket.addEventListener('message', event => {
                 loggedIn = true;
             }
             messages.innerHTML =
-            `<div class="login message">
-                <span class=${username === myUsername ? 'me' : ''}>@${username}</span> has joined the chatroom
+            `<div class="login message${username === myUsername ? ' me' : ''}">
+                <span>@${username}</span> has joined the chatroom
             </div>` +  messages.innerHTML;
             break;
         }
@@ -57,7 +57,7 @@ socket.addEventListener('message', event => {
             const [ info ] = data.args;
             messages.innerHTML =
             `<div class="info message">
-                <span>Server:</span> ${info}
+                <span>SERVER:</span> ${info}
             </div>` + messages.innerHTML;
             break;
         }

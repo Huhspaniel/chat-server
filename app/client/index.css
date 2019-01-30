@@ -19,6 +19,8 @@ body {
     display: flex;
     flex-direction: column-reverse;
     overflow: auto;
+    --user-color: 133, 77, 182;
+    --me-color: 0, 140, 114;
 }
 .message {
     padding: 5px;
@@ -28,15 +30,28 @@ body {
 }
 .message span {
     font-weight: bold;
+    color: inherit;
 }
-.message span.me {
-    color: rgb(0, 140, 114);
+span.me {
+    color: rgb(var(--me-color));
+}
+span.user {
+    color: rgb(var(--user-color));
 }
 .info.message {
     color: rgba(0, 0, 0, 0.5);
 }
 .login.message {
-    color: rgb(133, 77, 182);
+    color: rgb(var(--user-color));
+}
+.login.message.me {
+    color: rgb(var(--me-color));
+}
+.logout.message {
+    color: rgba(var(--user-color), .5);
+}
+.logout.message.me {
+    color: rgba(var(--me-color), .5);
 }
 .error.message {
     color: rgb(176, 46, 46);
