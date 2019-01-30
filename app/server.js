@@ -149,10 +149,11 @@ server.on('upgrade', (req, socket) => {
       'Upgrade: WebSocket'
     ]
     socket.write(res.join('\r\n') + '\r\n\r\n');
+    socket.id = key.slice(0, key.length - 2);
     socket.write(constructReply({
       event: 'info',
       args: ['Please input a username to join']
-    }))
+    }));
     socket.on('data', function (buf) {
       let data;
       data = parseSocketMsg(buf);
@@ -184,9 +185,7 @@ server.on('upgrade', (req, socket) => {
                 };
               } else {
                 this.username = username;
-                this.id = key.slice(0, key.length - 2);
                 this.loggedIn = true;
-                sockets.push(this);
                 reply = {
                   event: 'login',
                   args: [username]
@@ -223,30 +222,32 @@ server.on('upgrade', (req, socket) => {
           }
         }
         if (reply.event === 'error') {
-          socket.write(constructReply(reply));
+          this.write(constructReply(reply));
         } else {
           sockets.forEach(socket => {
-            socket.write(constructReply(reply));
+            if (!socket.destroyed) {
+              socket.write(constructReply(reply));
+            } else {
+              console.log('Socket ' + socket.id + ' is not connected')
+            }
           });
         }
       }
     }).on('end', function () {
       console.log(`Socket ${this.id} disconnected`);
-      const username = this.username;
-      delete sockets.splice(sockets.indexOf(this), 1);
-      sockets.forEach(socket => {
-        const reply = {
-          event: 'logout',
-          args: [username]
-        }
-        socket.write(constructReply(reply));
-      });
+      sockets.splice(sockets.indexOf(this), 1);
+      if (this.loggedIn) {
+        const username = this.username;
+        sockets.forEach(socket => {
+          const reply = {
+            event: 'logout',
+            args: [username]
+          }
+          socket.write(constructReply(reply));
+        });
+      }
     });
-    if (socket.connected) {
-      sockets.push(socket);
-    } else {
-      delete sockets.find(_socket => _socket === socket);
-    }
+    sockets.push(socket);
     console.log(`Socket ${key.slice(0, key.length - 2)} connected`);
   }
 });
