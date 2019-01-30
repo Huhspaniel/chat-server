@@ -1,0 +1,58 @@
+body {
+    background-color: #101010;
+    margin: 0;
+    font-family: 'Source Code Pro', monospace;
+    font-size: 16px;
+}
+.chat-box {
+    display: grid;
+    grid-template-rows: 1fr auto;
+    width: 500px;
+    height: 600px;
+    max-width: 100vw;
+    max-height: 100vh;
+    box-shadow: 0 0 5px rgb(210, 241, 255);
+    background-color: rgb(210, 241, 255);
+    margin: 10px;
+}
+.messages {
+    display: flex;
+    flex-direction: column-reverse;
+    overflow: auto;
+}
+.message {
+    padding: 5px;
+}
+.message:nth-last-child(even) {
+    background-color: rgba(0, 0, 0, 0.08);
+}
+.message span {
+    font-weight: bold;
+}
+.message span.me {
+    color: rgb(0, 140, 114);
+}
+.info.message {
+    color: rgba(0, 0, 0, 0.5);
+}
+.login.message {
+    color: rgb(133, 77, 182);
+}
+.error.message {
+    color: rgb(176, 46, 46);
+}
+.user-input {
+    background-color: #10101035;
+    box-shadow: 0 0 1px black;
+    display: grid;
+    grid-template-columns: auto 1fr;
+}
+.user-input span, .user-input input {
+    padding: 5px;
+    border: none;
+    background-color: inherit;
+    font-size: inherit;
+}
+.user-input input:focus {
+    outline: none;
+}
