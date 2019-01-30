@@ -177,13 +177,19 @@ server.on('upgrade', (req, socket) => {
                 args: ['Username must be of type string']
               };
             } else {
-              const username = data.args[0].trim().replace(/[\s]{2,}/);
-              if (username.length > 15) {
+              const username = data.args[0].trim();
+              if (username.match(/\s/)) {
+                reply = {
+                  event: 'error',
+                  args: ['Username cannot have spaces']
+                }
+              } else if (username.length > 15) {
                 reply = {
                   event: 'error',
                   args: ['Username cannot exceed 15 characters']
                 };
               } else {
+                sockets.push(socket);
                 this.username = username;
                 this.loggedIn = true;
                 reply = {
@@ -247,7 +253,6 @@ server.on('upgrade', (req, socket) => {
         });
       }
     });
-    sockets.push(socket);
     console.log(`Socket ${key.slice(0, key.length - 2)} connected`);
   }
 });

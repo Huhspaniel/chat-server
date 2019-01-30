@@ -2,6 +2,7 @@ const isSec = window.location.protocol === 'https:'
 const socket = new WebSocket(`${isSec ? 'wss' : 'ws'}://${window.location.hostname}:${window.location.port}`);
 
 const messages = document.querySelector('.messages');
+const inputBox = document.querySelector('.user-input input');
 
 socket.addEventListener('error', err => {
     console.log(err);
@@ -28,13 +29,14 @@ socket.addEventListener('message', event => {
         }
         case 'login': {
             const [ username ] = data.args;
-            if (!loggedIn && username === myUsername) {
-                loggedIn = true;
-            }
             messages.innerHTML =
             `<div class="login message${username === myUsername ? ' me' : ''}">
                 <span>@${username}</span> has joined the chatroom
             </div>` +  messages.innerHTML;
+            if (!loggedIn && username === myUsername) {
+                loggedIn = true;
+                inputBox.setAttribute('placeholder', '');
+            }
             break;
         }
         case 'logout': {
@@ -64,7 +66,7 @@ socket.addEventListener('message', event => {
     }
 });
 
-document.querySelector('.user-input input').addEventListener('keyup', e => {
+inputBox.addEventListener('keyup', e => {
     if (e.key === 'Enter') {
         const input = e.target.value;
         e.target.value = '';
