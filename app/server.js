@@ -188,6 +188,11 @@ server.on('upgrade', (req, socket) => {
                   event: 'error',
                   args: ['Username cannot exceed 17 characters']
                 };
+              } else if (sockets.find(socket => socket.username === username)) {
+                reply = {
+                  event: 'error',
+                  args: ['Username taken']
+                }
               } else {
                 sockets.push(socket);
                 this.username = username;
