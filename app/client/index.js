@@ -99,6 +99,7 @@ function connectSocket() {
 connectSocket();
 reconnectBtn.addEventListener('click', e => {
     e.preventDefault();
+    form[0].value = '';
     messages.innerHTML = '';
     connectSocket();
 });
