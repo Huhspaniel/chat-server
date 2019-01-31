@@ -1,4 +1,4 @@
-# real-time-chat
+# chat-server
 
 In learning WebSocket protocol/standards and in attaining greater mastery of the Node.js runtime, its built-in modules, and "under-the-hood" fundamentals of web development, I created this real-time-chat server with 0 external dependencies.
 
