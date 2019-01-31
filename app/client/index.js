@@ -14,7 +14,6 @@ const isSec = window.location.protocol === 'https:'
 const socketUrl = `${isSec ? 'wss' : 'ws'}://${window.location.hostname}:${window.location.port}`;
 let socket = { readyState: 3 };
 function connectSocket() {
-    console.log(socket);
     const { readyState } = socket;
     switch (readyState) {
         case 2: {
@@ -40,7 +39,7 @@ function connectSocket() {
     }
     socket.onerror = event => {
         console.log('WebSocket error event: ', event);
-        renderMessage('ERROR', 'Caught WebSocket error (in console)', 'error');
+        renderMessage('ERROR', 'Caught error (in console)', 'error');
     };
     socket.onmessage = event => {
         console.log('Received:', JSON.parse(event.data));
@@ -86,11 +85,11 @@ function connectSocket() {
                 </div>` + messages.innerHTML;
                 break;
             }
-            case 'info': {
-                const [info] = data.args;
+            case 'server-msg': {
+                const [msg] = data.args;
                 messages.innerHTML =
-                    `<div class="server message">
-                    <span>SERVER:</span> ${info}
+                    `<div class="server-msg message">
+                    <span>SERVER:</span> ${msg}
                 </div>` + messages.innerHTML;
                 break;
             }

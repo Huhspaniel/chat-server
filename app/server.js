@@ -147,7 +147,7 @@ server.on('upgrade', (req, socket) => {
     socket.write(res.join('\r\n') + '\r\n\r\n');
     socket.id = key.slice(0, key.length - 2);
     socket.write(constructReply({
-      event: 'info',
+      event: 'server-msg',
       args: ['Please input a username to join']
     }));
     socket.on('data', function (buf) {

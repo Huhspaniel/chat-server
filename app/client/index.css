@@ -65,7 +65,7 @@ span.me {
 span.user {
     color: rgb(var(--user-color));
 }
-.server.message {
+.server-msg.message {
     color: rgba(0, 0, 0, 0.5);
 }
 .client.message {
