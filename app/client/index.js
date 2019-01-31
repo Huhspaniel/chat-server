@@ -3,6 +3,7 @@ const socket = new WebSocket(`${isSec ? 'wss' : 'ws'}://${window.location.hostna
 
 const messages = document.querySelector('.messages');
 const inputBox = document.querySelector('.user-input input');
+const form = document.querySelector('.user-input');
 
 socket.addEventListener('error', err => {
     console.log(err);
@@ -16,10 +17,10 @@ socket.addEventListener('message', event => {
     const data = JSON.parse(event.data);
     switch (data.event) {
         case 'chat': {
-            const [ username, chat ] = data.args;
+            const [username, chat] = data.args;
             let scrollTop = messages.scrollTop;
-            messages.innerHTML = 
-            `<div class="chat message">
+            messages.innerHTML =
+                `<div class="chat message">
                 <span class="${username === myUsername ? 'me' : 'user'}">@${username}:</span> ${chat}
             </div>` + messages.innerHTML;
             if (messages.scrollHeight - messages.scrollTop > messages.offsetHeight) {
@@ -28,11 +29,11 @@ socket.addEventListener('message', event => {
             break;
         }
         case 'login': {
-            const [ username ] = data.args;
+            const [username] = data.args;
             messages.innerHTML =
-            `<div class="login message${username === myUsername ? ' me' : ''}">
+                `<div class="login message${username === myUsername ? ' me' : ''}">
                 <span>@${username}</span> has joined the chatroom
-            </div>` +  messages.innerHTML;
+            </div>` + messages.innerHTML;
             if (!loggedIn && username === myUsername) {
                 loggedIn = true;
                 inputBox.setAttribute('placeholder', '');
@@ -40,25 +41,25 @@ socket.addEventListener('message', event => {
             break;
         }
         case 'logout': {
-            const [ username ] = data.args;
+            const [username] = data.args;
             messages.innerHTML =
-            `<div class="logout message">
+                `<div class="logout message">
                 <span class=${username === myUsername ? 'me' : ''}>@${username}</span> has left the chatroom
             </div>` + messages.innerHTML;
             break;
         }
         case 'error': {
-            const [ err ] = data.args;
-            messages.innerHTML = 
-            `<div class="error message">
+            const [err] = data.args;
+            messages.innerHTML =
+                `<div class="error message">
                 <span>ERROR:</span> ${err}
             </div>` + messages.innerHTML;
             break;
         }
         case 'info': {
-            const [ info ] = data.args;
+            const [info] = data.args;
             messages.innerHTML =
-            `<div class="info message">
+                `<div class="info message">
                 <span>SERVER:</span> ${info}
             </div>` + messages.innerHTML;
             break;
@@ -66,20 +67,36 @@ socket.addEventListener('message', event => {
     }
 });
 
-inputBox.addEventListener('keyup', e => {
-    if (e.key === 'Enter') {
-        const input = e.target.value;
-        e.target.value = '';
-        const message = {
-            event: null,
-            args: [input]
-        }
-        if (loggedIn) {
-            message.event = 'chat';
-        } else {
-            message.event = 'login';
-            myUsername = input;
-        }
-        socket.send(JSON.stringify(message));
+// inputBox.addEventListener('keyup', e => {
+//     if (e.key === 'Enter') {
+//         const input = e.target.value;
+//         e.target.value = '';
+//         const message = {
+//             event: null,
+//             args: [input]
+//         }
+//         if (loggedIn) {
+//             message.event = 'chat';
+//         } else {
+//             message.event = 'login';
+//             myUsername = input;
+//         }
+//         socket.send(JSON.stringify(message));
+//     }
+// });
+form.addEventListener('submit', e => {
+    e.preventDefault();
+    const input = e.target[0].value;
+    e.target[0].value = '';
+    const message = {
+        event: null,
+        args: [input]
     }
-});
+    if (loggedIn) {
+        message.event = 'chat';
+    } else {
+        message.event = 'login';
+        myUsername = input;
+    }
+    socket.send(JSON.stringify(message));
+})

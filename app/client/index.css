@@ -13,8 +13,9 @@ body {
     width: calc(100vw - 100px);
     height: calc(100vh - 100px);
     max-width: 800px;
-    box-shadow: 0 0 5px rgb(210, 241, 255);
-    background-color: rgb(210, 241, 255);
+    --box-color: rgb(210, 241, 255);
+    box-shadow: 0 0 5px var(--box-color);
+    background-color: var(--box-color);
     margin: 50px;
 }
 .messages {
@@ -59,7 +60,7 @@ span.user {
     background-color: #10101035;
     box-shadow: 0 0 1px black;
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: auto 1fr auto;
 }
 .user-input span, .user-input input {
     padding: 6px;
@@ -79,6 +80,18 @@ span.user {
 }
 .user-input input::placeholder {
     color: rgba(0, 0, 0, 0.5);
+}
+.user-input input[type="submit"] {
+    box-sizing: border-box;
+    background-color: rgba(255, 255, 255, 0.7);
+    border: outset rgba(255, 255, 255, 0.4);
+    border-radius: 2px;
+    border-width: 2px;
+    padding: 4px 13px;
+}
+.user-input input[type="submit"]:active {
+    border-style: inset;
+    background-color: rgba(255, 255, 255, 0.5);
 }
 
 @media only screen and (max-width: 750px) {
