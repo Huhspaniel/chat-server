@@ -8,6 +8,7 @@ body {
     justify-content: center;
 }
 .chat-box {
+    position: relative;
     display: grid;
     grid-template-rows: 1fr auto;
     width: calc(100vw - 100px);
@@ -17,6 +18,27 @@ body {
     box-shadow: 0 0 5px var(--box-color);
     background-color: var(--box-color);
     margin: 50px;
+}
+button.reconnect {
+    position: absolute;
+    background-color: transparent;
+    border: none;
+    top: 0;
+    right: 0;
+    padding: 5px;
+    margin: 5px;
+    font-size: 25px;
+    transition-property: transform;
+    transition-duration: .8s;
+    transition-timing-function: ease-out;
+    border-radius: 50%;
+}
+button.reconnect:hover {
+    cursor: pointer;
+    transform: rotate(360deg);
+}
+button.reconnect:focus {
+    outline: none;
 }
 .messages {
     display: flex;
@@ -41,8 +63,11 @@ span.me {
 span.user {
     color: rgb(var(--user-color));
 }
-.info.message {
+.server.message {
     color: rgba(0, 0, 0, 0.5);
+}
+.client.message {
+    color: rgba(255, 119, 0, 1);
 }
 .login.message {
     color: rgb(var(--user-color));
