@@ -108,7 +108,7 @@ form.addEventListener('submit', e => {
     const { readyState } = socket;
     switch (readyState) {
         case 0: {
-            renderMessage('CLIENT', 'Connecting to server... please wait', 'info');
+            renderMessage('CLIENT', 'Connecting to server... please wait', 'client');
             break;
         }
         case 1: {
