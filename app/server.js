@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const parseUrl = require('url').parse;
 const PORT = process.env.PORT || 8080;
 const HOST = process.env.NODE_ENV === 'production'
   ? null
@@ -28,7 +29,8 @@ const server = http.createServer((req, res) => {
   let { method, url } = req;
   if (method === 'GET') {
     url = url.replace(/^(\.\.[\/\\])+/, '');
-    let pathname = path.join(__dirname, '/client', path.normalize(url));
+    url = parseUrl(url);
+    let pathname = path.join(__dirname, '/client', path.normalize(url.pathname));
 
     fs.exists(pathname, function (exist) {
       if (!exist) {
