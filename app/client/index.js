@@ -39,7 +39,7 @@ function connectSocket() {
     }
     socket.onerror = event => {
         console.log('WebSocket error event: ', event);
-        renderMessage('ERROR', 'Caught error (in console)', 'error');
+        renderMessage('ERROR', 'Caught error (in console). Try reconnecting', 'error');
     };
     socket.onmessage = event => {
         console.log('Received:', JSON.parse(event.data));
