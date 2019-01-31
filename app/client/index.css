@@ -112,6 +112,7 @@ span.user {
     background-color: rgba(0, 0, 0, 0.4);
     box-shadow: 0 0 1px black;
     padding: 6px 15px;
+<<<<<<< HEAD
 
     /* override user agent stylesheets on mobile */
     -webkit-appearance: none;
@@ -120,6 +121,8 @@ span.user {
     border-bottom-right-radius: 0px;
     border-bottom-left-radius: 0px;
     margin: 0;
+=======
+>>>>>>> 3eb26a873fb5aba488ff7e309e94bc9203130b98
 }
 .user-input input[type="submit"]:active {
     background-color: rgba(0, 0, 0, 0.5);
