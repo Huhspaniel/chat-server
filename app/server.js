@@ -253,7 +253,9 @@ server.on('upgrade', (req, socket) => {
       }
     }).on('end', function () {
       console.log(`Socket ${this.id} disconnected`);
-      sockets.splice(sockets.indexOf(this), 1);
+      sockets.splice(sockets.findIndex(socket => {
+        this.id === socket.id;
+      }), 1);
       if (this.loggedIn) {
         const username = this.username;
         sockets.forEach(socket => {
