@@ -1,4 +1,4 @@
-# real-time-chat
+# chat-server
 
 In learning WebSocket protocol/standards and in attaining greater mastery of the Node.js runtime, its built-in modules, and "under-the-hood" fundamentals of web development, I created this real-time-chat server with 0 external dependencies.
 
@@ -6,6 +6,6 @@ This project was incredibly challenging for me, from understanding how to parse 
 
 In managing sending/receiving of different kinds of messages, I implemented an event-like system of socket/server communication, similar in implementation to Socket.IO. Greater abstraction using EventEmitters and/or EventEmitter-like objects is possible, but arguably unessecary since this is not a framework but a standalone project. Further compartmentalization of code and files is also possible.
 
-# Deployments:
+# Deployment:
 * AWS: https://chat.huhspaniel.com
 * Heroku: https://chat-server-huhspaniel.herokuapp.com (Outdated)
