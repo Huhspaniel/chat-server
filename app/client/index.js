@@ -118,7 +118,7 @@ form.addEventListener('submit', e => {
                 message.event = 'chat';
             } else {
                 message.event = 'login';
-                myUsername = input;
+                myUsername = input.trim();
             }
             socket.send(JSON.stringify(message));
             break;
