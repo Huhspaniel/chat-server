@@ -52,6 +52,7 @@ button.reconnect:focus {
     display: flex;
     flex-direction: column-reverse;
     overflow: auto;
+    word-break: break-word;
     --user-color: 133, 77, 182;
     --me-color: 0, 140, 114;
 }
