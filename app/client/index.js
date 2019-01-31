@@ -97,7 +97,11 @@ function connectSocket() {
     };
 }
 connectSocket();
-reconnectBtn.addEventListener('click', connectSocket);
+reconnectBtn.addEventListener('click', e => {
+    e.preventDefault();
+    messages.innerHTML = '';
+    connectSocket();
+});
 
 form.addEventListener('submit', e => {
     e.preventDefault();
@@ -124,7 +128,7 @@ form.addEventListener('submit', e => {
             break;
         }
         default: {
-            renderMessage('ERROR', 'Not connected to server', 'error');
+            renderMessage('ERROR', 'Not connected to server. Try reconnecting', 'error');
             break;
         }
     }
