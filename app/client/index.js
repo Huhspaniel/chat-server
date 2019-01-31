@@ -104,11 +104,11 @@ form.addEventListener('submit', e => {
     const { readyState } = socket;
     switch (readyState) {
         case 0: {
-            renderMessage('INFO', 'Connecting to server... please wait', 'info');
+            renderMessage('CLIENT', 'Connecting to server... please wait', 'info');
             break;
         }
         case 1: {
-            const input = e.target[0].value;
+            const input = e.target[0].value.trim();
             e.target[0].value = '';
             const message = {
                 event: null,
@@ -118,7 +118,7 @@ form.addEventListener('submit', e => {
                 message.event = 'chat';
             } else {
                 message.event = 'login';
-                myUsername = input.trim();
+                myUsername = input;
             }
             socket.send(JSON.stringify(message));
             break;
