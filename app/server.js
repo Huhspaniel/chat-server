@@ -229,10 +229,15 @@ server.on('upgrade', (req, socket) => {
               }
             }
           }
+          case 'ping': {
+            reply = {
+              event: 'pong'
+            }
+          }
         }
         if (reply.event === 'error') {
           this.write(constructReply(reply));
-        } else {
+        } else if (reply.event === 'chat' || reply.event === 'login' || reply.event === 'logout') {
           sockets.forEach(socket => {
             if (!socket.destroyed) {
               socket.write(constructReply(reply));
@@ -240,6 +245,8 @@ server.on('upgrade', (req, socket) => {
               console.log('Socket ' + socket.id + ' is not connected')
             }
           });
+        } else if (reply.event === 'pong') {
+          this.write(constructReply(reply));
         }
       }
     }).on('end', function () {
