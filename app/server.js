@@ -228,11 +228,13 @@ server.on('upgrade', (req, socket) => {
                 }
               }
             }
+            break;
           }
           case 'ping': {
             reply = {
               event: 'pong'
             }
+            break;
           }
         }
         if (reply.event === 'error') {
