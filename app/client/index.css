@@ -21,8 +21,9 @@ body {
     height: 100%;
     max-width: 800px;
     --box-color: rgb(210, 241, 255);
-    box-shadow: 0 0 5px var(--box-color);
+    box-shadow: 0 0 1px var(--box-color);
     background-color: var(--box-color);
+    border-radius: 2px;
 }
 button.reconnect {
     position: absolute;
@@ -36,7 +37,7 @@ button.reconnect {
     margin: 6px;
     font-size: 23px;
     transition-property: transform;
-    transition-duration: .8s;
+    transition-duration: .7s;
     transition-timing-function: ease-out;
     border-radius: 50%;
 }
@@ -89,43 +90,50 @@ span.user {
     color: rgb(176, 46, 46);
 }
 .user-input {
-    background-color: #10101035;
-    box-shadow: 0 0 1px black;
+    background-color: rgba(16, 16, 16, 0.7);
+    /* box-shadow: 0 0 1px black; */
     display: grid;
     grid-template-columns: auto 1fr auto;
+    color: rgba(255, 255, 255, 0.75);
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+    border-bottom-right-radius: 2px;
+    border-bottom-left-radius: 2px;
 }
 .user-input span, .user-input input {
     padding: 6px;
+    margin: 0;
     border: none;
     background-color: transparent;
     font-size: inherit;
     font-family: inherit;
-    color: rgb(0, 0, 0);
+    color: inherit;
 }
 .user-input span {
     padding-right: 0;
     display: flex;
     align-items: center;
+    border-bottom-left-radius: 2px;
 }
 .user-input input:focus {
     outline: none;
 }
 .user-input input::placeholder {
-    color: rgba(0, 0, 0, 0.5);
+    color: rgba(255, 255, 255, 0.2);
 }
 .user-input input[type="submit"] {
     box-sizing: border-box;
-    color: white;
+    color: rgba(255, 255, 255, 0.9);
     background-color: rgba(0, 0, 0, 0.4);
-    box-shadow: 0 0 1px black;
+    /* box-shadow: 0 0 1px black; */
     padding: 6px 15px;
 
     /* override user agent stylesheets on mobile */
     -webkit-appearance: none;
-    border-top-left-radius: 0px;
-    border-top-right-radius: 0px;
-    border-bottom-right-radius: 0px;
-    border-bottom-left-radius: 0px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 2px;
+    border-bottom-left-radius: 0;
     margin: 0;
 }
 .user-input input[type="submit"]:active {
