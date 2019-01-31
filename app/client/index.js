@@ -3,6 +3,9 @@ const form = document.querySelector('.user-input');
 const reconnectBtn = document.querySelector('button.reconnect');
 let loggedIn = false;
 let myUsername = null;
+let lastActivity = null;
+let pinger = null;
+
 function renderMessage(tag, msg, msgClass, tagClass) {
     messages.innerHTML =
         `<div class="${msgClass || ''} message">
@@ -33,6 +36,8 @@ function connectSocket() {
     };
     socket.onclose = event => {
         loggedIn = false;
+        lastActivity = null;
+        clearInterval(pinger);
         form[0].placeholder = 'Input a username';
         console.log('Disconnected from server: ', event);
         renderMessage('CLIENT', 'Disconnected from server', 'client')
@@ -65,6 +70,17 @@ function connectSocket() {
                 </div>` + messages.innerHTML;
                 if (!loggedIn && username === myUsername) {
                     loggedIn = true;
+                    pinger = setInterval(() => {
+                        if (socket.readyState === 1) {
+                            if (Date.now() - lastActivity > 1.8e+6) { // times out after 30 minutes of inactivity
+                                socket.close();
+                                clearInterval(pinger);
+                            } else {
+                                console.log('Pinging server');
+                                socket.send('{ "event": "ping" }');
+                            }
+                        }
+                    }, 5000);
                     form[0].placeholder = '';
                 }
                 break;
@@ -97,6 +113,7 @@ function connectSocket() {
     };
 }
 connectSocket();
+
 reconnectBtn.addEventListener('click', e => {
     e.preventDefault();
     form[0].value = '';
@@ -104,8 +121,13 @@ reconnectBtn.addEventListener('click', e => {
     connectSocket();
 });
 
+form[0].addEventListener('input', e => {
+    lastActivity = Date.now();
+})
+
 form.addEventListener('submit', e => {
     e.preventDefault();
+    lastActivity = Date.now();
     const { readyState } = socket;
     switch (readyState) {
         case 0: {
