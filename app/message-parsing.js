@@ -1,11 +1,4 @@
-const crypto = require('crypto');
-
 module.exports = {
-    generateAcceptKey(key) {
-        return crypto.createHash('sha1')
-            .update(key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11', 'binary')
-            .digest('base64');
-    },
     // WebSocket Data Framing: https://tools.ietf.org/html/rfc6455#section-5.1
     parseMsg(buffer) {
         let offset = 0; // state of octet/byte offset
