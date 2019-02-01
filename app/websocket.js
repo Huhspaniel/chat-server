@@ -66,6 +66,8 @@ module.exports = {
                             return this.on('data', buffer => {
                                 try {
                                     var data = parseMsg(buffer);
+                                    const time = new Date();
+                                    console.log(`${time.toLocaleTimeString()} ${time.toLocaleDateString()} Socket ${this.info} sent`, data);
                                 } catch (err) {
                                     this.emit('error', err);
                                     return;
