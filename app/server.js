@@ -76,10 +76,10 @@ const server = http.createServer((req, res) => {
 
 ws.createSockets(server, (socket, chatroom) => {
   const time = new Date();
-  console.log(`${time.toLocaleTimeString()} ${time.toLocaleDateString()} Socket ${socket.id} connected`);
+  console.log(`${time.toLocaleTimeString()} ${time.toLocaleDateString()} -- Socket ${socket.id} connected`);
   socket.emitData('server-message', 'Please input a username to join');
 
-  socket.onData('login', function (username) {
+  socket.on('login', function (username) {
     if (typeof username !== 'string') {
       return this.emitData('error', `Type '${typeof username}' invalid for username. Must be 'string'`)
     }
@@ -97,7 +97,7 @@ ws.createSockets(server, (socket, chatroom) => {
       chatroom.push(this);
       chatroom.emitData('login', username);
     }
-  }).onData('chat', function (chat) {
+  }).on('chat', function (chat) {
     if (!this.loggedIn) {
       this.emitData('error', 'You have not joined. Please provide a username.')
     } else if (typeof chat !== 'string') {
@@ -110,13 +110,14 @@ ws.createSockets(server, (socket, chatroom) => {
         chatroom.emitData('chat', this.username, chat);
       }
     }
-  }).onData('logout', function () {
+  }).on('logout', function () {
     this.emitData('server-message', 'Disconnecting...');
     this.end();
-  }).onData('ping', function () {
+  }).on('ping', function () {
     this.emitData('pong');
   }).on('close', function () {
-    console.log(`Socket ${this.info} disconnected`);
+    const time = new Date();
+    console.log(`${time.toLocaleTimeString()} ${time.toLocaleDateString()} -- Socket ${this.info} disconnected`);
     if (chatroom.length > 0) {
       const socketIndex = chatroom.indexOf(this);
       if (socketIndex > -1) {

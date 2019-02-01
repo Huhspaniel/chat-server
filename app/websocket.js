@@ -59,31 +59,26 @@ module.exports = {
                         value: function (event, ...args) {
                             return this.write(unparseMsg({ event, args }))
                         }
-                    },
-                    onData: {
-                        value: function (event, cb) {
-                            cb = cb.bind(this);
-                            return this.on('data', buffer => {
-                                try {
-                                    var data = parseMsg(buffer);
-                                    const time = new Date();
-                                    console.log(`${time.toLocaleTimeString()} ${time.toLocaleDateString()} Socket ${this.info} sent`, data);
-                                } catch (err) {
-                                    this.emit('error', err);
-                                    return;
-                                }
-                                if (data === null) return this.end();
-                                if (event === data.event) {
-                                    if (data.args instanceof Array) {
-                                        cb(...data.args);
-                                    } else {
-                                        cb();
-                                    }
-                                }
-                            })
-                        }
                     }
                 });
+                socket.on('data', function (buffer) {
+                    try {
+                        var data = parseMsg(buffer);
+                    } catch (err) {
+                        this.emit('error', err);
+                        return;
+                    }
+                    if (data === null) {
+                        return this.end();
+                    }
+                    const time = new Date();
+                    console.log(`${time.toLocaleTimeString()} ${time.toLocaleDateString()} -- Socket ${this.info} sent`, data);
+                    if (data.args instanceof Array) {
+                        this.emit(data.event, ...data.args);
+                    } else {
+                        this.emit(data.event);
+                    }
+                })
                 cb(socket, chatroom);
             }
         })
