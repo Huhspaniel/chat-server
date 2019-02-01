@@ -87,6 +87,7 @@ module.exports = {
                     'Upgrade: WebSocket'
                 ]
                 socket.write(res.join('\r\n') + '\r\n\r\n');
+                chatroom.lastActive = Date.now();
                 chatroom.timeoutHandler = chatroom.timeoutHandler || setInterval(() => {
                     if (chatroom.lastActive === null) {
                         chatroom.clearTimeoutHandler();
