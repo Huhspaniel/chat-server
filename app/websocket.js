@@ -92,7 +92,6 @@ module.exports = {
                     if (chatroom.lastActive === null) {
                         chatroom.clearTimeoutHandler();
                     } else if (chatroom.timeLeft <= 0) {
-                        chatroom.emitData('server-message', 'Disconnecting...');
                         chatroom.close();
                     } else if (chatroom.timeLeft <= 60000) {
                         const seconds = Math.round(chatroom.timeLeft / 1000) + ' seconds'
