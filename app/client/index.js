@@ -6,11 +6,18 @@ let myUsername = null;
 let lastActivity = null;
 let pinger = null;
 
-function renderMessage(tag, msg, msgClass, tagClass) {
+function renderMessage(span, msg, colors) {
+    if (typeof colors === 'object') {
+        var { msgColor, spanColor } = colors;
+    }
+    let scrollTop = messages.scrollTop;
     messages.innerHTML =
-        `<div class="${msgClass || ''} message">
-                <span class="${tagClass || ''}">${tag}:</span> ${msg}
+        `<div class="${msgColor || ''} message">
+            ${span ? `<span class="${spanColor || ''}">${span}</span> ` : ''}${msg}
         </div>` + messages.innerHTML;
+    if (messages.scrollHeight - messages.scrollTop > messages.offsetHeight) {
+        messages.scrollTop = scrollTop;
+    }
 }
 
 const isSec = window.location.protocol === 'https:'
@@ -32,7 +39,7 @@ function connectSocket() {
     socket = new WebSocket(socketUrl);
     socket.onopen = event => {
         console.log('Connection to server established: ', event);
-        renderMessage('CLIENT', 'Connection to server established', 'client');
+        renderMessage('NOTICE:', 'Connection to server established', { msgColor: 'info' });
     };
     socket.onclose = event => {
         loggedIn = false;
@@ -40,11 +47,11 @@ function connectSocket() {
         clearInterval(pinger);
         form[0].placeholder = 'Input a username';
         console.log('Disconnected from server: ', event);
-        renderMessage('CLIENT', 'Disconnected from server', 'client')
+        renderMessage('NOTICE:', 'Disconnected from server', { msgColor: 'info' })
     }
     socket.onerror = event => {
         console.log('WebSocket error event: ', event);
-        renderMessage('ERROR', 'Caught error (in console). Try reconnecting', 'error');
+        renderMessage('ERROR:', 'Caught error (in console). Try reconnecting', { msgColor: 'error' });
     };
     socket.onmessage = event => {
         console.log('Received:', JSON.parse(event.data));
@@ -52,36 +59,46 @@ function connectSocket() {
         switch (data.event) {
             case 'chat': {
                 const [username, chat] = data.args;
-                let scrollTop = messages.scrollTop;
-                messages.innerHTML =
-                    `<div class="chat message">
-                    <span class="${username === myUsername ? 'me' : 'user'}">@${username}:</span> ${chat}
-                </div>` + messages.innerHTML;
-                if (messages.scrollHeight - messages.scrollTop > messages.offsetHeight) {
-                    messages.scrollTop = scrollTop;
-                }
+                renderMessage(
+                    `@${username}:`, chat,
+                    { spanColor: username === myUsername ? 'me' : 'user' }
+                );
                 break;
             }
             case 'login': {
                 const [username] = data.args;
-                messages.innerHTML =
-                    `<div class="login message${username === myUsername ? ' me' : ''}">
-                    <span>@${username}</span> has joined the chatroom
-                </div>` + messages.innerHTML;
+                renderMessage(
+                    `@${username}`, 'has joined the chatroom',
+                    { msgColor: username === myUsername ? 'me' : 'user' }
+                );
                 if (!loggedIn && username === myUsername) {
                     loggedIn = true;
+                    form[0].placeholder = '';
                     pinger = setInterval(() => {
                         if (socket.readyState === 1) {
-                            if (Date.now() - lastActivity > 1.8e+6) { // times out after 30 minutes of inactivity
+                            let timeout = 1.2e+6 - (Date.now() - lastActivity); // times out after 20 minutes of inactivity
+                            if (timeout <= 0) {
+                                renderMessage(
+                                    'NOTICE:', 'Connection timed out due to inactivity',
+                                    { msgColor: 'error' }
+                                )
                                 socket.close();
                                 clearInterval(pinger);
                             } else {
+                                if (timeout <= 120000) {
+                                    timeout = Math.trunc(timeout / 1000) + ' seconds'
+                                    renderMessage(
+                                        'WARNING:', `Connection will time out due to inactivity in ${timeout}`,
+                                        { msgColor: 'info' }
+                                    )
+                                }
                                 console.log('Pinging server');
                                 socket.send('{ "event": "ping" }');
                             }
+                        } else {
+                            clearInterval(pinger);
                         }
-                    }, 5000);
-                    form[0].placeholder = '';
+                    }, 30000);
                 }
                 break;
             }
@@ -104,7 +121,7 @@ function connectSocket() {
             case 'server-msg': {
                 const [msg] = data.args;
                 messages.innerHTML =
-                    `<div class="server-msg message">
+                    `<div class="gray message">
                     <span>SERVER:</span> ${msg}
                 </div>` + messages.innerHTML;
                 break;
@@ -131,7 +148,7 @@ form.addEventListener('submit', e => {
     const { readyState } = socket;
     switch (readyState) {
         case 0: {
-            renderMessage('CLIENT', 'Connecting to server... please wait', 'client');
+            renderMessage(null, 'Connecting to server... please wait', 'client');
             break;
         }
         case 1: {
@@ -151,7 +168,7 @@ form.addEventListener('submit', e => {
             break;
         }
         default: {
-            renderMessage('ERROR', 'Not connected to server. Try reconnecting', 'error');
+            renderMessage('Not connected to server. Try reconnecting', 'error', 'ERROR');
             break;
         }
     }

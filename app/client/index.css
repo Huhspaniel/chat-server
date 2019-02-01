@@ -53,8 +53,8 @@ button.reconnect:focus {
     flex-direction: column-reverse;
     overflow: auto;
     word-break: break-word;
-    --user-color: 133, 77, 182;
-    --me-color: 0, 140, 114;
+    /* --user-color: 133, 77, 182;
+    --me-color: 0, 140, 114; */
 }
 .message {
     padding: 8px;
@@ -64,9 +64,27 @@ button.reconnect:focus {
 }
 .message span {
     font-weight: bold;
-    color: inherit;
 }
-span.me {
+/* colors */
+.me {
+    color: rgb(0, 140, 114);
+}
+.gray {
+    color: rgba(0, 0, 0, 0.5);
+}
+.info {
+    color: rgb(255, 119, 0);
+}
+.user {
+    color: rgb(133, 77, 182);
+}
+.logout {
+    color: rgb(118, 43, 29)
+}
+.error {
+    color: rgb(176, 46, 46);
+}
+/* span.me {
     color: rgb(var(--me-color));
 }
 span.user {
@@ -75,7 +93,7 @@ span.user {
 .server-msg.message {
     color: rgba(0, 0, 0, 0.5);
 }
-.client.message {
+.info.message {
     color: rgba(255, 119, 0, 1);
 }
 .login.message {
@@ -89,7 +107,7 @@ span.user {
 }
 .error.message {
     color: rgb(176, 46, 46);
-}
+} */
 .user-input {
     background-color: rgba(16, 16, 16, 0.7);
     /* box-shadow: 0 0 1px black; */
