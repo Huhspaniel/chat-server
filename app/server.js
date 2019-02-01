@@ -4,9 +4,7 @@ const path = require('path');
 const crypto = require('crypto');
 const parseUrl = require('url').parse;
 const PORT = process.env.PORT || 8080;
-const HOST = process.env.NODE_ENV === 'production'
-  ? null
-  : process.env.HOST || 'localhost'
+const HOST = process.env.HOST || '127.0.0.1';
 
 const mimeType = {
   '.ico': 'image/x-icon',
@@ -149,14 +147,25 @@ server.on('upgrade', (req, socket) => {
     socket.write(res.join('\r\n') + '\r\n\r\n');
     socket.id = key.slice(0, key.length - 2);
     socket.write(constructReply({
-      event: 'server-msg',
+      event: 'server-message',
       args: ['Please input a username to join']
     }));
     socket.on('data', function (buf) {
-      let data;
-      data = parseSocketMsg(buf);
-      console.log(`Socket ${this.id || key.slice(0, key.length - 2)} sent:`, data);
+      let data = {};
       let reply = {};
+      try {
+        data = parseSocketMsg(buf);
+        console.log(`Socket ${this.id || key.slice(0, key.length - 2)} sent:`, data);
+      } catch (err) {
+        console.error(err);
+        reply = {
+          event: 'server-error',
+          args: [{
+            name: err.name,
+            message: err.message
+          }]
+        }
+      }
       if (data === null) {
         return this.end();
       } else {
@@ -237,7 +246,7 @@ server.on('upgrade', (req, socket) => {
             break;
           }
         }
-        if (reply.event === 'error') {
+        if (reply.event === 'error' || reply.event === 'server-error') {
           this.write(constructReply(reply));
         } else if (reply.event === 'chat' || reply.event === 'login' || reply.event === 'logout') {
           sockets.forEach(socket => {

@@ -118,12 +118,15 @@ function connectSocket() {
                 </div>` + messages.innerHTML;
                 break;
             }
-            case 'server-msg': {
+            case 'server-message': {
                 const [msg] = data.args;
                 messages.innerHTML =
                     `<div class="gray message">
                     <span>SERVER:</span> ${msg}
                 </div>` + messages.innerHTML;
+                break;
+            }
+            case 'server-error': {
                 break;
             }
         }
@@ -145,31 +148,33 @@ form[0].addEventListener('input', e => {
 form.addEventListener('submit', e => {
     e.preventDefault();
     lastActivity = Date.now();
-    const { readyState } = socket;
-    switch (readyState) {
-        case 0: {
-            renderMessage(null, 'Connecting to server... please wait', 'client');
-            break;
-        }
-        case 1: {
-            const input = e.target[0].value.trim();
-            e.target[0].value = '';
-            const message = {
-                event: null,
-                args: [input]
+    const input = e.target[0].value.trim();
+    if (input) {
+        const { readyState } = socket;
+        switch (readyState) {
+            case 0: {
+                renderMessage(null, 'Connecting to server... please wait', 'client');
+                break;
             }
-            if (loggedIn) {
-                message.event = 'chat';
-            } else {
-                message.event = 'login';
-                myUsername = input;
+            case 1: {
+                e.target[0].value = '';
+                const message = {
+                    event: null,
+                    args: [input]
+                }
+                if (loggedIn) {
+                    message.event = 'chat';
+                } else {
+                    message.event = 'login';
+                    myUsername = input;
+                }
+                socket.send(JSON.stringify(message));
+                break;
             }
-            socket.send(JSON.stringify(message));
-            break;
-        }
-        default: {
-            renderMessage('Not connected to server. Try reconnecting', 'error', 'ERROR');
-            break;
+            default: {
+                renderMessage('Not connected to server. Try reconnecting', 'error', 'ERROR');
+                break;
+            }
         }
     }
 })
