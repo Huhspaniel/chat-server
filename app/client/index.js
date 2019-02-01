@@ -91,6 +91,10 @@ function connectSocket() {
                 renderMessage('SERVER:', msg, { msgColor: 'gray' });
                 break;
             }
+            case 'server-warning': {
+                const [msg] = data.args;
+                renderMessage('WARNING:', msg, { msgColor: 'gray' });
+            }
             case 'server-error': {
                 break;
             }
@@ -105,6 +109,15 @@ reconnectBtn.addEventListener('click', e => {
     messages.innerHTML = '';
     connectSocket();
 });
+
+let lastPing = null;
+form[0].addEventListener('input', e => {
+    if (loggedIn && Date.now() - lastPing > 300000) {
+        console.log('Pinging server...')
+        socket.send('{ "event": "ping" }');
+        lastPing = Date.now();
+    }
+})
 
 form.addEventListener('submit', e => {
     e.preventDefault();
@@ -129,6 +142,7 @@ form.addEventListener('submit', e => {
                 } else {
                     message.event = 'login';
                     myUsername = input;
+                    lastPing = Date.now();
                 }
                 socket.send(JSON.stringify(message));
                 break;

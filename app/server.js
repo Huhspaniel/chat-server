@@ -76,7 +76,7 @@ const server = http.createServer((req, res) => {
 
 ws.createSockets(server, (socket, chatroom) => {
   const time = new Date();
-  console.log(`${time.toLocaleTimeString()} ${time.toLocaleDateString()} -- Socket ${socket.id} connected`);
+  console.log(`${time.toISOString()} -- Socket ${socket.id} connected`);
   socket.emitData('server-message', 'Please input a username to join');
 
   socket.on('login', function (username) {
@@ -94,7 +94,6 @@ ws.createSockets(server, (socket, chatroom) => {
       Object.assign(this, {
         username, loggedIn: true
       });
-      chatroom.push(this);
       chatroom.emitData('login', username);
     }
   }).on('chat', function (chat) {
@@ -115,19 +114,7 @@ ws.createSockets(server, (socket, chatroom) => {
     this.end();
   }).on('ping', function () {
     this.emitData('pong');
-  }).on('close', function () {
-    const time = new Date();
-    console.log(`${time.toLocaleTimeString()} ${time.toLocaleDateString()} -- Socket ${this.info} disconnected`);
-    if (chatroom.length > 0) {
-      const socketIndex = chatroom.indexOf(this);
-      if (socketIndex > -1) {
-        chatroom.splice(socketIndex, 1);
-      }
-      if (this.loggedIn) {
-        chatroom.emitData('logout', this.username);
-      }
-    }
-  });
+  })
 })
 
 server.listen(PORT, HOST, () => {
