@@ -131,6 +131,51 @@ function constructReply(data) {
 }
 
 const sockets = [];
+sockets.writeAll = function (message) {
+  sockets.forEach(socket => {
+    if (!socket.destroyed) {
+      socket.write(message);
+    }
+  })
+}
+let lastActivity = null;
+let timeoutMessages = null;
+function handleTimeoutMessages() {
+  if (!timeoutMessages) {
+    timeoutMessages = setInterval(() => {
+      if (sockets.length === 0) {
+        console.log('All sockets disconnected')
+        clearInterval(timeoutMessages);
+        lastActivity = timeoutMessages = null;
+      } else {
+        let timeout = 300000 - (Date.now() - lastActivity);
+        if (timeout <= 0) {
+          sockets.endAll();
+        } else if (timeout <= 60000) {
+          timeout = Math.trunc(timeout / 1000) + ' seconds.'
+          sockets.writeAll(constructReply({
+            event: 'server-message',
+            args: ['No activity detected. Timing out in ' + timeout]
+          }))
+        }
+      }
+    }, 10000);
+  }
+}
+sockets.endAll = function (message) {
+  console.log('Disconnecting all sockets');
+  message = message || constructReply({
+    event: 'server-message',
+    args: ['Closing all connections...']
+  });
+  sockets.forEach(socket => {
+    if (!socket.destroyed) {
+      socket.end(message);
+    }
+  })
+  sockets.length = 0;
+}
+
 server.on('upgrade', (req, socket) => {
   const { headers } = req;
   if (headers.upgrade !== 'websocket') {
@@ -146,16 +191,48 @@ server.on('upgrade', (req, socket) => {
     ]
     socket.write(res.join('\r\n') + '\r\n\r\n');
     socket.id = key.slice(0, key.length - 2);
+    console.log(`Socket ${socket.id} connected`);
+    Object.defineProperty(socket, 'info', {
+      get: function () {
+        return `${this.id}${this.username ? ` (@${this.username})` : ''}`;
+      }
+    })
     socket.write(constructReply({
       event: 'server-message',
       args: ['Please input a username to join']
     }));
+
+    socket.setTimeout(60000);
+    socket.removeAllListeners('timeout');
+    socket.isIdle = false;
+    socket.on('timeout', function () {
+      if (socket.isIdle) {
+        console.log(`Socket ${this.info} timed out!`)
+        this.end(constructReply({
+          event: 'server-message',
+          args: ['Connection timed out. Disconnecting...']
+        }));
+      } else {
+        console.log(`Socket ${this.info} is idle`);
+        socket.isIdle = true;
+        socket.setTimeout(20000);
+        this.write(constructReply({
+          event: 'server-message',
+          args: ['No activity detected. Will timeout in 20 seconds']
+        }));
+      }
+    });
+
     socket.on('data', function (buf) {
+      if (socket.isIdle) {
+        socket.setTimeout(60000);
+        socket.isIdle = false;
+      }
       let data = {};
       let reply = {};
       try {
         data = parseSocketMsg(buf);
-        console.log(`Socket ${this.id || key.slice(0, key.length - 2)} sent:`, data);
+        console.log(`Socket ${this.info} sent:`, data);
       } catch (err) {
         console.error(err);
         reply = {
@@ -167,7 +244,8 @@ server.on('upgrade', (req, socket) => {
         }
       }
       if (data === null) {
-        return this.end();
+        this.end();
+        return;
       } else {
         switch (data.event) {
           case 'login': {
@@ -213,7 +291,10 @@ server.on('upgrade', (req, socket) => {
             break;
           }
           case 'logout': {
-            return this.end();
+            return this.end(constructReply({
+              event: 'server-message',
+              args: ['Disconnecting...']
+            }));
           }
           case 'chat': {
             if (!this.loggedIn) {
@@ -249,37 +330,28 @@ server.on('upgrade', (req, socket) => {
         if (reply.event === 'error' || reply.event === 'server-error') {
           this.write(constructReply(reply));
         } else if (reply.event === 'chat' || reply.event === 'login' || reply.event === 'logout') {
-          sockets.forEach(socket => {
-            if (!socket.destroyed) {
-              socket.write(constructReply(reply));
-            } else {
-              console.log('Socket ' + socket.id + ' is not connected')
-            }
-          });
+          sockets.writeAll(constructReply(reply));
         } else if (reply.event === 'pong') {
           this.write(constructReply(reply));
         }
       }
-    }).on('end', function () {
-      console.log(`Socket ${this.id} disconnected`);
-      const socketIndex = sockets.findIndex(socket => {
-        return this.id === socket.id;
-      });
-      if (socketIndex > -1) {
-        sockets.splice(socketIndex, 1);
-      }
-      if (this.loggedIn) {
-        const username = this.username;
-        sockets.forEach(socket => {
-          const reply = {
-            event: 'logout',
-            args: [username]
-          }
-          socket.write(constructReply(reply));
+    }).on('close', function () {
+      console.log(`Socket ${this.id}${this.username ? ` (@${this.username})` : ''} disconnected`);
+      if (sockets.length > 0) {
+        const socketIndex = sockets.findIndex(socket => {
+          return this.id === socket.id;
         });
+        if (socketIndex > -1) {
+          sockets.splice(socketIndex, 1);
+        }
+        if (this.loggedIn) {
+          sockets.writeAll(constructReply({
+            event: 'logout',
+            args: [this.username]
+          }))
+        }
       }
     });
-    console.log(`Socket ${key.slice(0, key.length - 2)} connected`);
   }
 });
 

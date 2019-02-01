@@ -3,8 +3,6 @@ const form = document.querySelector('.user-input');
 const reconnectBtn = document.querySelector('button.reconnect');
 let loggedIn = false;
 let myUsername = null;
-let lastActivity = null;
-let pinger = null;
 
 function renderMessage(span, msg, colors) {
     if (typeof colors === 'object') {
@@ -43,8 +41,6 @@ function connectSocket() {
     };
     socket.onclose = event => {
         loggedIn = false;
-        lastActivity = null;
-        clearInterval(pinger);
         form[0].placeholder = 'Input a username';
         console.log('Disconnected from server: ', event);
         renderMessage('NOTICE:', 'Disconnected from server', { msgColor: 'info' })
@@ -74,56 +70,25 @@ function connectSocket() {
                 if (!loggedIn && username === myUsername) {
                     loggedIn = true;
                     form[0].placeholder = '';
-                    pinger = setInterval(() => {
-                        if (socket.readyState === 1) {
-                            let timeout = 1.2e+6 - (Date.now() - lastActivity); // times out after 20 minutes of inactivity
-                            if (timeout <= 0) {
-                                renderMessage(
-                                    'NOTICE:', 'Connection timed out due to inactivity',
-                                    { msgColor: 'error' }
-                                )
-                                socket.close();
-                                clearInterval(pinger);
-                            } else {
-                                if (timeout <= 120000) {
-                                    timeout = Math.trunc(timeout / 1000) + ' seconds'
-                                    renderMessage(
-                                        'WARNING:', `Connection will time out due to inactivity in ${timeout}`,
-                                        { msgColor: 'info' }
-                                    )
-                                }
-                                console.log('Pinging server');
-                                socket.send('{ "event": "ping" }');
-                            }
-                        } else {
-                            clearInterval(pinger);
-                        }
-                    }, 30000);
                 }
                 break;
             }
             case 'logout': {
                 const [username] = data.args;
-                messages.innerHTML =
-                    `<div class="logout message">
-                    <span class=${username === myUsername ? 'me' : ''}>@${username}</span> has left the chatroom
-                </div>` + messages.innerHTML;
+                renderMessage(
+                    `@${username}`, ' has left the chatroom',
+                    { msgColor: 'logout', spanColor: `${username === myUsername ? 'me' : ''}` }
+                );
                 break;
             }
             case 'error': {
                 const [err] = data.args;
-                messages.innerHTML =
-                    `<div class="error message">
-                    <span>ERROR:</span> ${err}
-                </div>` + messages.innerHTML;
+                renderMessage('ERROR:', err, { msgColor: 'error' });
                 break;
             }
             case 'server-message': {
                 const [msg] = data.args;
-                messages.innerHTML =
-                    `<div class="gray message">
-                    <span>SERVER:</span> ${msg}
-                </div>` + messages.innerHTML;
+                renderMessage('SERVER:', msg, { msgColor: 'gray' });
                 break;
             }
             case 'server-error': {
@@ -141,19 +106,16 @@ reconnectBtn.addEventListener('click', e => {
     connectSocket();
 });
 
-form[0].addEventListener('input', e => {
-    lastActivity = Date.now();
-})
-
 form.addEventListener('submit', e => {
     e.preventDefault();
-    lastActivity = Date.now();
     const input = e.target[0].value.trim();
     if (input) {
         const { readyState } = socket;
         switch (readyState) {
             case 0: {
-                renderMessage(null, 'Connecting to server... please wait', 'client');
+                renderMessage('NOTICE:', 'Connecting to server... please wait',
+                    { msgColor: 'info' }
+                );
                 break;
             }
             case 1: {
@@ -172,7 +134,9 @@ form.addEventListener('submit', e => {
                 break;
             }
             default: {
-                renderMessage('Not connected to server. Try reconnecting', 'error', 'ERROR');
+                renderMessage('ERROR:', 'Not connected to server. Try reconnecting',
+                    { msgColor: 'error' }
+                );
                 break;
             }
         }
