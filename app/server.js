@@ -202,26 +202,28 @@ server.on('upgrade', (req, socket) => {
       args: ['Please input a username to join']
     }));
 
-    socket.setTimeout(60000);
-    socket.removeAllListeners('timeout');
-    socket.isIdle = false;
-    socket.on('timeout', function () {
-      if (socket.isIdle) {
-        console.log(`Socket ${this.info} timed out!`)
-        this.end(constructReply({
-          event: 'server-message',
-          args: ['Connection timed out. Disconnecting...']
-        }));
-      } else {
-        console.log(`Socket ${this.info} is idle`);
-        socket.isIdle = true;
-        socket.setTimeout(20000);
-        this.write(constructReply({
-          event: 'server-message',
-          args: ['No activity detected. Will timeout in 20 seconds']
-        }));
-      }
-    });
+    if (!process.env.AWSEB) {
+      socket.setTimeout(60000);
+      socket.removeAllListeners('timeout');
+      socket.isIdle = false;
+      socket.on('timeout', function () {
+        if (socket.isIdle) {
+          console.log(`Socket ${this.info} timed out!`)
+          this.end(constructReply({
+            event: 'server-message',
+            args: ['Connection timed out. Disconnecting...']
+          }));
+        } else {
+          console.log(`Socket ${this.info} is idle`);
+          socket.isIdle = true;
+          socket.setTimeout(20000);
+          this.write(constructReply({
+            event: 'server-message',
+            args: ['No activity detected. Will timeout in 20 seconds']
+          }));
+        }
+      });
+    }
 
     socket.on('data', function (buf) {
       if (socket.isIdle) {
