@@ -10,16 +10,15 @@ function generateAcceptKey(key) {
 const chatroom = [];
 Object.assign(chatroom, {
     emitData(event, ...args) {
-        args.map(arg => {
-            if (typeof arg === 'function') {
-                arg = arg();
-            }
-            return arg;
-        })
         chatroom.forEach(socket => {
             if (!socket.destroyed) {
                 socket.write(unparseMsg({ event, args }));
             }
+        })
+    },
+    get(username) {
+        return chatroom.find(socket => {
+            return socket.username === username;
         })
     },
     close(message) {
@@ -141,6 +140,7 @@ function createSockets(server, cb) {
             });
             chatroom.push(socket);
             socket.on('data', function (buffer) {
+                console.log(chatroom.users);
                 this.lastActive = chatroom.lastActive = Date.now();
                 try {
                     var data = parseMsg(buffer);

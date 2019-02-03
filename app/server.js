@@ -74,86 +74,109 @@ const server = http.createServer((req, res) => {
 //   }
 // }
 
-const commands = [
-  '/help -- See list of available commands',
-  '/dm {user} {message} -- Send direct/private message',
-  '/users -- See list of active users'
-]
+const commands = {
+  help: '/help -- See list of available commands',
+  dm: '/dm {user} {message} -- Send direct/private message',
+  users: '/users -- See list of active users'
+}
 
-  ws.createSockets(server, (socket, chatroom) => {
-    console.log(`Socket ${socket.id} connected`);
-    socket.emitData('server-message', 'Please input a username to join');
+ws.createSockets(server, (socket, chatroom) => {
+  console.log(`Socket ${socket.id} connected`);
+  socket.emitData('server-message', 'Please input a username to join');
 
-    socket.on('login', function (username) {
-      if (typeof username !== 'string') {
-        return this.emitData('error', `Type '${typeof username}' invalid for username. Must be 'string'`)
-      }
-      username = username.trim();
-      if (username.match(/\s/)) {
-        this.emitData('error', 'Username cannot have spaces');
-      } else if (username.length > 17) {
-        this.emitData('error', 'Username cannot exceed 17 characters');
-      } else if (chatroom.find(socket => socket.username === username)) {
-        this.emitData('error', `Username ${username} is in use`);
+  socket.on('login', function (username) {
+    if (typeof username !== 'string') {
+      return this.emitData('error', `Type '${typeof username}' invalid for username. Must be 'string'`)
+    }
+    username = username.trim();
+    if (username.match(/\s/)) {
+      this.emitData('error', 'Username cannot have spaces');
+    } else if (username.match(/[@#%^~`/<>;:'"\[\]\{\}+=()*&?.,|]/)) {
+      this.emitData('error', 'Username contains invalid characters')
+    } else if (username.length > 17) {
+      this.emitData('error', 'Username cannot exceed 17 characters');
+    } else if (chatroom.find(socket => socket.username === username)) {
+      this.emitData('error', `Username ${username} is in use`);
+    } else {
+      Object.assign(this, {
+        username, loggedIn: true
+      });
+      chatroom.emitData('login', username);
+    }
+  }).on('chat', function (chat) {
+    if (!this.loggedIn) {
+      this.emitData('error', 'You have not joined. Please provide a username.')
+    } else if (typeof chat !== 'string') {
+      this.emitData('error', `Type ${typeof chat} invalid for chat message. Must be 'string'`)
+    } else {
+      chat = chat.trim().replace('/[\s]{2,}/', ' ');
+      if (chat.length > 255) {
+        this.emitData('error', 'Chat message cannot exceed 255 characters');
       } else {
-        Object.assign(this, {
-          username, loggedIn: true
-        });
-        chatroom.emitData('login', username);
+        chatroom.emitData('chat', this.username, chat);
       }
-    }).on('chat', function (chat) {
-      if (!this.loggedIn) {
-        this.emitData('error', 'You have not joined. Please provide a username.')
-      } else if (typeof chat !== 'string') {
-        this.emitData('error', `Type ${typeof chat} invalid for chat message. Must be 'string'`)
-      } else {
-        chat = chat.trim().replace('/[\s]{2,}/', ' ');
-        if (chat.length > 255) {
-          this.emitData('error', 'Chat message cannot exceed 255 characters');
+    }
+  }).on('cmd', function (...args) {
+    args[0] = args[0] || 'help';
+    switch (args[0]) {
+      case 'help': {
+        this.emitData(
+          'info',
+          `<p style="padding-left: 10px">Available commands:</p>
+            <div style="padding-left: 20px;">
+              ${Object.values(commands).map(cmd => `<p>- ${cmd}</p>`).join('')}
+            </div>`
+        )
+        break;
+      }
+      case 'dm': {
+        let [username, ...msg] = args.slice(1);
+        if (!username) {
+          this.emitData(
+            'info',
+            `<p style="padding-left: 10px;">${commands.dm}</p>`
+          )
         } else {
-          chatroom.emitData('chat', this.username, chat);
+          const to = chatroom.get(username);
+          const from = this;
+          if (to) {
+            msg = msg.join(' ');
+            if (to === from) {
+              this.emitData('dm', from.username, to.username, msg);
+            } else {
+              to.emitData('dm', from.username, to.username, msg);
+              from.emitData('dm', from.username, to.username, msg);
+            }
+          } else {
+            from.emitData('error', `Cannot find user "${username}"`);
+          }
         }
+        break;
       }
-    }).on('cmd', function (...args) {
-      args[0] = args[0] || 'help';
-      switch (args[0]) {
-        case 'help': {
-          this.emitData(
-            'info',
-            `<p style="padding-left: 10px">Available commands:</p>
-            <div style="padding-left: 20px;">
-              ${commands.map(cmd => `<p>- ${cmd}</p>`).join('')}
-            </div>`
-          )
-          break;
-        }
-        case 'dm': {
-          break;
-        }
-        case 'users': {
-          this.emitData(
-            'info',
-            `<p style="padding-left: 10px">Online users:</p>
-            <div style="padding-left: 20px;">
-              ${chatroom.users.map(user => `<p>- @${user}</p>`)}
-            </div>`
-          )
-          break;
-        }
-        default: {
-          this.emitData(
-            'info',
-            `Command "${args[0]}" not found. Input /help for a list of available commands.`
-          )
-        }
+      case 'users': {
+        this.emitData(
+          'info',
+          `<p style="padding-left: 10px">Online users:</p>
+          <div style="padding-left: 20px;">
+            ${chatroom.users.map(user => `<p>- @${user}</p>`).join('')}
+          </div>`
+        )
+        break;
       }
-    }).on('logout', function () {
-      this.emitData('server-message', 'Disconnecting...');
-      this.end();
-    }).on('ping', function () {
-      this.emitData('pong');
-    })
+      default: {
+        this.emitData(
+          'info',
+          `Command "${args[0]}" not found. Input /help for a list of available commands.`
+        )
+      }
+    }
+  }).on('logout', function () {
+    this.emitData('server-message', 'Disconnecting...');
+    this.end();
+  }).on('ping', function () {
+    this.emitData('pong');
   })
+})
 
 server.listen(PORT, HOST, () => {
   console.log(`Server listening on http://${HOST}:${PORT}\n`);

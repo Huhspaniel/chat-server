@@ -78,6 +78,9 @@ button.reconnect:focus {
 .orange {
     color: rgb(255, 119, 0);
 }
+.dm {
+    color: rgb(174, 170, 42);
+}
 .user {
     color: rgb(133, 77, 182);
 }
