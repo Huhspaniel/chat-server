@@ -18,10 +18,16 @@ function renderMessage(tag, msg, colors) {
         message.append(span);
     }
     message.append(msg);
-    messages.append(message);
+    messages.prepend(message);
     if (messages.scrollHeight - messages.scrollTop > messages.offsetHeight) {
         messages.scrollTop = scrollTop;
     }
+}
+function renderHTML(html, color) {
+    const message = document.createElement('div');
+    message.classList.add(color || 'gray', 'message');
+    message.innerHTML = html;
+    messages.prepend(message);
 }
 
 const isSec = window.location.protocol === 'https:'
@@ -43,13 +49,13 @@ function connectSocket() {
     socket = new WebSocket(socketUrl);
     socket.onopen = event => {
         console.log('Connection to server established: ', event);
-        renderMessage('NOTICE:', 'Connection to server established', { msgColor: 'info' });
+        renderMessage('NOTICE:', 'Connection to server established', { msgColor: 'orange' });
     };
     socket.onclose = event => {
         loggedIn = false;
         form[0].placeholder = 'Input a username';
         console.log('Disconnected from server: ', event);
-        renderMessage('NOTICE:', 'Disconnected from server', { msgColor: 'info' })
+        renderMessage('NOTICE:', 'Disconnected from server', { msgColor: 'orange' })
     }
     socket.onerror = event => {
         console.log('WebSocket error event: ', event);
@@ -90,6 +96,12 @@ function connectSocket() {
             case 'error': {
                 const [err] = data.args;
                 renderMessage('ERROR:', err, { msgColor: 'error' });
+                break;
+            }
+            case 'info': {
+                let [info] = data.args;
+                info = '<span>SERVER:</span><br />' + info;
+                renderHTML(info, 'green');
                 break;
             }
             case 'server-message': {
@@ -133,24 +145,28 @@ form.addEventListener('submit', e => {
         switch (readyState) {
             case 0: {
                 renderMessage('NOTICE:', 'Connecting to server... please wait',
-                    { msgColor: 'info' }
+                    { msgColor: 'orange' }
                 );
                 break;
             }
             case 1: {
                 e.target[0].value = '';
-                const message = {
-                    event: null,
-                    args: [input]
-                }
+                let event, args;
                 if (loggedIn) {
-                    message.event = 'chat';
+                    if (input.charAt(0) === '/') {
+                        event = 'cmd';
+                        args = input.slice(1).trim().split(/[\s]/);
+                    } else {
+                        event = 'chat';
+                        args = [input];
+                    }
                 } else {
-                    message.event = 'login';
+                    event = 'login';
                     myUsername = input;
+                    args = [input];
                     lastPing = Date.now();
                 }
-                socket.send(JSON.stringify(message));
+                socket.send(JSON.stringify({ event, args }));
                 break;
             }
             default: {
