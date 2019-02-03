@@ -70,115 +70,116 @@ Object.defineProperties(chatroom, {
 //     chatroom.length = 0;
 // }
 
-module.exports = {
-    parseMsg, unparseMsg, chatroom,
-    createSockets(server, cb) {
-        server.on('upgrade', (req, socket) => {
-            const { headers } = req;
-            if (headers.upgrade !== 'websocket') {
-                return socket.end('HTTP/1.1 400 Bad Request');
-            } else {
-                const key = headers['sec-websocket-key'];
-                const acceptKey = generateAcceptKey(key);
-                const res = [
-                    'HTTP/1.1 101 Web Socket Protocol Handshake',
-                    'Sec-Websocket-Accept: ' + acceptKey,
-                    'Connection: Upgrade',
-                    'Upgrade: WebSocket'
-                ]
-                socket.write(res.join('\r\n') + '\r\n\r\n');
-                chatroom.lastActive = Date.now();
-                chatroom.timeoutHandler = chatroom.timeoutHandler || setInterval(() => {
-                    if (chatroom.lastActive === null) {
-                        chatroom.clearTimeoutHandler();
-                    } else if (chatroom.timeLeft <= 0) {
-                        chatroom.close();
-                    } else if (chatroom.timeLeft <= 60000) {
-                        const seconds = Math.round(chatroom.timeLeft / 1000) + ' seconds'
-                        chatroom.emitData('server-message', `No activity detected. Closing all connections in ${seconds}`);
+
+function createSockets(server, cb) {
+    server.on('upgrade', (req, socket) => {
+        const { headers } = req;
+        if (headers.upgrade !== 'websocket') {
+            return socket.end('HTTP/1.1 400 Bad Request');
+        } else {
+            const key = headers['sec-websocket-key'];
+            const acceptKey = generateAcceptKey(key);
+            const res = [
+                'HTTP/1.1 101 Web Socket Protocol Handshake',
+                'Sec-Websocket-Accept: ' + acceptKey,
+                'Connection: Upgrade',
+                'Upgrade: WebSocket'
+            ]
+            socket.write(res.join('\r\n') + '\r\n\r\n');
+            chatroom.lastActive = Date.now();
+            chatroom.timeoutHandler = chatroom.timeoutHandler || setInterval(() => {
+                if (chatroom.lastActive === null) {
+                    chatroom.clearTimeoutHandler();
+                } else if (chatroom.timeLeft <= 0) {
+                    chatroom.close();
+                } else if (chatroom.timeLeft <= 60000) {
+                    const seconds = Math.round(chatroom.timeLeft / 1000) + ' seconds'
+                    chatroom.emitData('server-message', `No activity detected. Closing all connections in ${seconds}`);
+                }
+            }, 20000);
+            Object.defineProperties(socket, {
+                id: {
+                    value: key.slice(0, key.length - 2)
+                },
+                info: {
+                    get: function () {
+                        return `${this.id}${this.username ? ` (@${this.username})` : ''}`;
                     }
-                }, 20000);
-                Object.defineProperties(socket, {
-                    id: {
-                        value: key.slice(0, key.length - 2)
-                    },
-                    info: {
-                        get: function () {
-                            return `${this.id}${this.username ? ` (@${this.username})` : ''}`;
-                        }
-                    },
-                    emitData: {
-                        value: function (event, ...args) {
-                            return socket.write(unparseMsg({ event, args }))
-                        }
-                    },
-                    timeout: {
-                        value: 825000
-                    },
-                    lastActive: {
-                        value: Date.now(),
-                        writable: true
-                    },
-                    timeLeft: {
-                        get() {
-                            return this.timeout - this.timeInactive;
-                        }
-                    },
-                    timeoutHandler: {
-                        value: setInterval(() => {
-                            if (!socket.loggedIn) {
-                                socket.emitData('server-message', 'Please input a username to join.');
-                            } else {
-                                socket.emitData('ping');
-                                if (socket.timeLeft <= 0) {
-                                    socket.emitData('server-message', 'Connection timed out. Disconnecting...');
-                                    clearInterval(socket.timeoutHandler);
-                                    socket.end();
-                                } else if (socket.timeLeft <= 120000) {
-                                    const seconds = Math.round(socket.timeLeft / 1000) + ' seconds'
-                                    socket.emitData('server-warning', `Your connection will time out due to inactivity in ${seconds}`);
-                                }
+                },
+                emitData: {
+                    value: function (event, ...args) {
+                        return socket.write(unparseMsg({ event, args }))
+                    }
+                },
+                timeout: {
+                    value: 825000
+                },
+                lastActive: {
+                    value: Date.now(),
+                    writable: true
+                },
+                timeLeft: {
+                    get() {
+                        return this.timeout - this.timeInactive;
+                    }
+                },
+                timeoutHandler: {
+                    value: setInterval(() => {
+                        if (!socket.loggedIn) {
+                            socket.emitData('server-message', 'Please input a username to join.');
+                        } else {
+                            socket.emitData('ping');
+                            if (socket.timeLeft <= 0) {
+                                socket.emitData('server-message', 'Connection timed out. Disconnecting...');
+                                clearInterval(socket.timeoutHandler);
+                                socket.end();
+                            } else if (socket.timeLeft <= 120000) {
+                                const seconds = Math.round(socket.timeLeft / 1000) + ' seconds'
+                                socket.emitData('server-warning', `Your connection will time out due to inactivity in ${seconds}`);
                             }
-                        }, 55000)
-                    }
-                });
-                chatroom.push(socket);
-                socket.on('data', function (buffer) {
-                    this.lastActive = chatroom.lastActive = Date.now();
-                    try {
-                        var data = parseMsg(buffer);
-                    } catch (err) {
-                        this.emit('error', err);
-                        return;
-                    }
-                    if (data === null) {
-                        return this.end();
-                    }
-                    const time = new Date();
-                    console.log(`${time.toISOString()} -- Socket ${this.info} sent`, data);
-                    if (data.args instanceof Array) {
-                        this.emit(data.event, ...data.args);
-                    } else {
-                        this.emit(data.event);
-                    }
-                }).on('end', function () {
-                    clearInterval(this.timeoutHandler);
-                }).on('close', function () {
-                    clearInterval(this.timeoutHandler);
-                    const time = new Date();
-                    console.log(`${time.toISOString()} -- Socket ${this.info} disconnected`);
-                    if (chatroom.length > 0) {
-                        const socketIndex = chatroom.indexOf(this);
-                        if (socketIndex > -1) {
-                            chatroom.splice(socketIndex, 1);
                         }
-                        if (this.loggedIn) {
-                            chatroom.emitData('logout', this.username);
-                        }
+                    }, 55000)
+                }
+            });
+            chatroom.push(socket);
+            socket.on('data', function (buffer) {
+                this.lastActive = chatroom.lastActive = Date.now();
+                try {
+                    var data = parseMsg(buffer);
+                } catch (err) {
+                    this.emit('error', err);
+                    return;
+                }
+                if (data === null) {
+                    return this.end();
+                }
+                console.log(`Socket ${this.info} sent`, data);
+                if (data.args instanceof Array) {
+                    this.emit(data.event, ...data.args);
+                } else {
+                    this.emit(data.event, data.args);
+                }
+            }).on('end', function () {
+                clearInterval(this.timeoutHandler);
+                this.destroy
+            }).on('close', function (hadError) {
+                clearInterval(this.timeoutHandler);
+                console.log(`Socket ${this.info} disconnected`);
+                if (chatroom.length > 0) {
+                    const socketIndex = chatroom.indexOf(this);
+                    if (socketIndex > -1) {
+                        chatroom.splice(socketIndex, 1);
                     }
-                });
-                cb(socket, chatroom);
-            }
-        })
-    }
+                    if (this.loggedIn) {
+                        chatroom.emitData('logout', this.username);
+                    }
+                }
+            });
+            cb(socket, chatroom);
+        }
+    })
+}
+
+module.exports = {
+    parseMsg, unparseMsg, chatroom, createSockets
 }

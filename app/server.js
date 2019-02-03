@@ -75,8 +75,7 @@ const server = http.createServer((req, res) => {
 // }
 
 ws.createSockets(server, (socket, chatroom) => {
-  const time = new Date();
-  console.log(`${time.toISOString()} -- Socket ${socket.id} connected`);
+  console.log(`Socket ${socket.id} connected`);
   socket.emitData('server-message', 'Please input a username to join');
 
   socket.on('login', function (username) {
