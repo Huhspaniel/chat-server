@@ -178,7 +178,7 @@ function createSockets(server, cb) {
                 }
             }).on('error', function (err, type) {
                 console.error(`Socket ${this.info}%s error`, type ? ' ' + type : '');
-                console.error(err);
+                console.error(err.stack);
                 const { name, message } = err;
                 switch (type) {
                     case 'parsing': {
