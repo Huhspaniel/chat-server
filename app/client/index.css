@@ -69,11 +69,11 @@ button.reconnect:focus {
 .me {
     color: rgb(0, 140, 114);
 }
-.green {
-    color: rgb(58, 125, 36);
+.blue {
+    color: rgb(2, 45, 186);
 }
 .gray {
-    color: rgba(0, 0, 0, 0.5);
+    color: rgba(0, 0, 0, 0.7);
 }
 .orange {
     color: rgb(255, 119, 0);

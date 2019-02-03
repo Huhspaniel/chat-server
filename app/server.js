@@ -75,9 +75,9 @@ const server = http.createServer((req, res) => {
 // }
 
 const commands = {
-  help: '/help -- See list of available commands',
   dm: '/dm {user} {message} -- Send direct/private message',
-  users: '/users -- See list of active users'
+  users: '/users -- See list of active users',
+  help: '/help -- See list of available commands'
 }
 
 ws.createSockets(server, (socket, chatroom) => {
@@ -102,6 +102,7 @@ ws.createSockets(server, (socket, chatroom) => {
         username, loggedIn: true
       });
       chatroom.emitData('login', username);
+      this.emitData('server-message', 'Welcome! Type in "/help" for a list of available commands!')
     }
   }).on('chat', function (chat) {
     if (!this.loggedIn) {
@@ -122,7 +123,7 @@ ws.createSockets(server, (socket, chatroom) => {
       case 'help': {
         this.emitData(
           'info',
-          `<p style="padding-left: 10px">Available commands:</p>
+          `<p style="padding-left:10px; font-weight:bold;">Available commands:</p>
             <div style="padding-left: 20px;">
               ${Object.values(commands).map(cmd => `<p>- ${cmd}</p>`).join('')}
             </div>`
@@ -137,6 +138,7 @@ ws.createSockets(server, (socket, chatroom) => {
             `<p style="padding-left: 10px;">${commands.dm}</p>`
           )
         } else {
+          if (username.charAt(0) === '@') username = username.slice(1);
           const to = chatroom.get(username);
           const from = this;
           if (to) {
@@ -148,7 +150,7 @@ ws.createSockets(server, (socket, chatroom) => {
               from.emitData('dm', from.username, to.username, msg);
             }
           } else {
-            from.emitData('error', `Cannot find user "${username}"`);
+            from.emitData('server-message', `User "${username}" is not online`);
           }
         }
         break;
@@ -156,7 +158,7 @@ ws.createSockets(server, (socket, chatroom) => {
       case 'users': {
         this.emitData(
           'info',
-          `<p style="padding-left: 10px">Online users:</p>
+          `<p style="padding-left:10px; font-weight:bold;">Online users:</p>
           <div style="padding-left: 20px;">
             ${chatroom.users.map(user => `<p>- @${user}</p>`).join('')}
           </div>`

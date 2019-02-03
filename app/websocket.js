@@ -12,7 +12,9 @@ Object.assign(chatroom, {
     emitData(event, ...args) {
         chatroom.forEach(socket => {
             if (!socket.destroyed) {
-                socket.write(unparseMsg({ event, args }));
+                socket.write(unparseMsg({ event, args, status: {
+                    users: chatroom.users
+                } }));
             }
         })
     },
@@ -105,7 +107,10 @@ function createSockets(server, cb) {
                 },
                 emitData: {
                     value: function (event, ...args) {
-                        return socket.write(unparseMsg({ event, args }))
+                        const status = {
+                            users: chatroom.users
+                        }
+                        return socket.write(unparseMsg({ event, args, status }))
                     }
                 },
                 timeout: {

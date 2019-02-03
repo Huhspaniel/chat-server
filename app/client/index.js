@@ -115,8 +115,8 @@ function connectSocket() {
             }
             case 'info': {
                 let [info] = data.args;
-                info = '<span>SERVER:</span><br />' + info;
-                renderHTML(info, 'green');
+                // info = '<span>SERVER:</span><br />' + info;
+                renderHTML(info, 'blue');
                 break;
             }
             case 'server-message': {
@@ -126,7 +126,7 @@ function connectSocket() {
             }
             case 'server-warning': {
                 const [msg] = data.args;
-                renderMessage('WARNING:', msg, { msgColor: 'gray' });
+                renderMessage('WARNING:', msg, { msgColor: 'error' });
             }
             case 'server-error': {
                 break;
