@@ -4,15 +4,21 @@ const reconnectBtn = document.querySelector('button.reconnect');
 let loggedIn = false;
 let myUsername = null;
 
-function renderMessage(span, msg, colors) {
+function renderMessage(tag, msg, colors) {
     if (typeof colors === 'object') {
-        var { msgColor, spanColor } = colors;
+        var { msgColor, tagColor } = colors;
     }
     let scrollTop = messages.scrollTop;
-    messages.innerHTML =
-        `<div class="${msgColor || ''} message">
-            ${span ? `<span class="${spanColor || ''}">${span}</span> ` : ''}${msg}
-        </div>` + messages.innerHTML;
+    const message = document.createElement('div');
+    message.classList.add('message', msgColor);
+    if (tag) {
+        const span = document.createElement('span');
+        if (tagColor) span.classList.add(tagColor);
+        span.append(tag + ' ');
+        message.append(span);
+    }
+    message.append(msg);
+    messages.append(message);
     if (messages.scrollHeight - messages.scrollTop > messages.offsetHeight) {
         messages.scrollTop = scrollTop;
     }
@@ -57,7 +63,7 @@ function connectSocket() {
                 const [username, chat] = data.args;
                 renderMessage(
                     `@${username}:`, chat,
-                    { spanColor: username === myUsername ? 'me' : 'user' }
+                    { tagColor: username === myUsername ? 'me' : 'user' }
                 );
                 break;
             }
@@ -77,7 +83,7 @@ function connectSocket() {
                 const [username] = data.args;
                 renderMessage(
                     `@${username}`, ' has left the chatroom',
-                    { msgColor: 'logout', spanColor: `${username === myUsername ? 'me' : ''}` }
+                    { msgColor: 'logout', tagColor: `${username === myUsername ? 'me' : ''}` }
                 );
                 break;
             }

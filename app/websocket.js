@@ -10,12 +10,15 @@ function generateAcceptKey(key) {
 const chatroom = [];
 Object.assign(chatroom, {
     emitData(event, ...args) {
-        const filter = args[args.length - 1];
+        args.map(arg => {
+            if (typeof arg === 'function') {
+                arg = arg();
+            }
+            return arg;
+        })
         chatroom.forEach(socket => {
             if (!socket.destroyed) {
-                if (typeof filter === 'function' ? filter(socket) : true) {
-                    socket.write(unparseMsg({ event, args }));
-                }
+                socket.write(unparseMsg({ event, args }));
             }
         })
     },
@@ -55,27 +58,6 @@ Object.defineProperties(chatroom, {
         }
     }
 });
-// chatroom.emitData = function (event, ...args) {
-//     chatroom.forEach(socket => {
-//         if (!socket.destroyed) {
-//             socket.write(unparseMsg({ event, args }));
-//         }
-//     })
-// }
-// chatroom.close = function (message) {
-//     console.log('Disconnecting all sockets');
-//     message = message || unparseMsg({
-//         event: 'server-message',
-//         args: ['Closing all connections...']
-//     });
-//     chatroom.forEach(socket => {
-//         if (!socket.destroyed) {
-//             socket.end(message);
-//         }
-//     })
-//     chatroom.length = 0;
-// }
-
 
 function createSockets(server, cb) {
     server.on('upgrade', (req, socket) => {

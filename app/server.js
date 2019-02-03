@@ -108,6 +108,12 @@ ws.createSockets(server, (socket, chatroom) => {
         chatroom.emitData('chat', this.username, chat);
       }
     }
+  }).on('cmd', function(...args) {
+    switch (args[0]) {
+      case 'help': {
+        this.emitData('info')
+      }
+    }
   }).on('logout', function () {
     this.emitData('server-message', 'Disconnecting...');
     this.end();
