@@ -49,6 +49,16 @@ Object.assign(chatroom, {
     }
 });
 Object.defineProperties(chatroom, {
+    users: {
+        get() {
+            return this.reduce((users, socket) => {
+                if (socket.loggedIn) {
+                    users.push(socket.username);
+                }
+                return users;
+            }, []);
+        }
+    },
     timeout: {
         value: 120000
     },

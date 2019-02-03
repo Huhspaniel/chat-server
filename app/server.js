@@ -121,13 +121,23 @@ const commands = [
           this.emitData(
             'info',
             `<p style="padding-left: 10px">Available commands:</p>
-            <div class="server-html" style="padding-left: 20px;">
-              ${commands.map(cmd => `<p>${cmd}</p>`).join('')}
+            <div style="padding-left: 20px;">
+              ${commands.map(cmd => `<p>- ${cmd}</p>`).join('')}
             </div>`
           )
           break;
         }
         case 'dm': {
+          break;
+        }
+        case 'users': {
+          this.emitData(
+            'info',
+            `<p style="padding-left: 10px">Online users:</p>
+            <div style="padding-left: 20px;">
+              ${chatroom.users.map(user => `<p>- @${user}</p>`)}
+            </div>`
+          )
           break;
         }
         default: {
