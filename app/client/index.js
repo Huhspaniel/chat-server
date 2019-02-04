@@ -175,6 +175,12 @@ form.addEventListener('submit', e => {
                     if (input.charAt(0) === '/') {
                         event = 'cmd';
                         args = input.slice(1).trim().split(/[\s]/);
+                        switch (args[0]) {
+                            case 'dm': {
+                                args[2] = args.splice(2).join(' ');
+                                break;
+                            }
+                        }
                     } else {
                         event = 'chat';
                         args = [input];
