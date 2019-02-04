@@ -110,19 +110,30 @@ module.exports = function (socket, wsKey) {
             }
         })
         .on('close', function (hadError) {
-            console.log(`Socket ${socket.info} disconnected`);
+            if (!hadError) {
+                console.log(`Socket ${socket.info} disconnected`);
+            }
             clearInterval(socket.timeoutHandler);
         })
         .on('error', function (err, type) {
-            console.error(`Socket ${socket.info}%s error`, type ? ' ' + type : '');
-            console.error(err.stack);
             const { name, message } = err;
+            if (message === 'write EPIPE') {
+                type = 'EPIPE';
+            }
             switch (type) {
                 case 'parsing': {
+                    console.error(`Socket ${socket.info} parsing error`);
+                    console.error(err.stack);
                     socket.emit('server-error', { name, message }, 'parsing');
-                    break;
+                    return;
+                }
+                case 'EPIPE': {
+                    console.error(`Socket ${socket.info} disconnected due to EPIPE error`);
+                    stream.end();
                 }
                 default: {
+                    console.error(`Socket ${socket.info} disconnected due to%s error`, type ? ' ' + type : '');
+                    console.error(err.stack);
                     stream.end();
                 }
             }
