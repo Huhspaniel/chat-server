@@ -12,6 +12,8 @@ const commands = {
                 'info',
                 `<p style="padding-left: 10px;">${cmdDesc.dm}</p>`
             )
+        } else if (!msg) {
+            return;
         } else {
             if (username.charAt(0) === '@') username = username.slice(1);
             const to = chatroom.users[username];
