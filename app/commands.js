@@ -58,5 +58,10 @@ for (let cmd in cmdDesc) {
 }
 module.exports = (...args) => {
     const cmd = args.splice(0, 1) || 'help';
+    if (!commands[cmd]) {
+        return socket => {
+            socket.emit('info', `<p style="padding-left: 10px;">Command "${cmd}" does not exist. Type "/help" to see available commands.</p>`)
+        }
+    }
     return commands[cmd](...args);
 }
