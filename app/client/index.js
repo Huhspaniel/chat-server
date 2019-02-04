@@ -106,6 +106,10 @@ function connectSocket() {
                     `@${username}`, ' has left the chatroom',
                     { msgColor: 'logout', tagColor: `${username === myUsername ? 'me' : ''}` }
                 );
+                if (username === myUsername) {
+                    loggedIn = false;
+                    form[0].placeholder = 'Input a username'
+                }
                 break;
             }
             case 'error': {

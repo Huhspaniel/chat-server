@@ -28,7 +28,7 @@ Object.assign(chatroom, {
             })
             .on('chat', function (msg) {
                 if (!socket.loggedIn) {
-                    socket.emit('error', 'You have not joined. Please provide a username.')
+                    socket.emit('server-message', 'Please input a username to join');
                 } else if (typeof msg !== 'string') {
                     socket.emit('error', `Type ${typeof msg} invalid for chat message. Must be 'string'`)
                 } else {
@@ -36,7 +36,13 @@ Object.assign(chatroom, {
                     if (msg.length > 255) {
                         socket.emit('error', 'Chat message cannot exceed 255 characters');
                     } else {
-                        chatroom.emit('chat', socket.username, msg);
+                        chatroom.emit({
+                            event: 'chat', 
+                            args: [socket.username, msg],
+                            filter: socket => {
+                                return socket.loggedIn;
+                            }
+                        });
                     }
                 }
             })
@@ -44,7 +50,11 @@ Object.assign(chatroom, {
                 socket.emit('pong');
             })
             .on('cmd', function (...args) {
-                cmd(...args)(socket, chatroom);
+                if (!socket.loggedIn) {
+                    socket.emit('server-message', 'Please input a username to join');
+                } else {
+                    cmd(...args)(socket, chatroom);
+                }
             })
 
         socket._stream
@@ -75,13 +85,28 @@ Object.assign(chatroom, {
             socket.emit('error', `Username ${username} is in use`);
         } else {
             chatroom.users[username] = socket;
-            chatroom.emit('login', username);
+            chatroom.emit({
+                event: 'login',
+                args: [username],
+                filter: _socket => {
+                    return _socket.loggedIn;
+                }
+            });
             socket.emit('server-message', 'Welcome! Type in "/help" for a list of available commands!')
         }
     },
     logout(socket) {
-        delete chatroom.users[socket.username];
+        const username = socket.username;
         socket.username = null;
+        delete chatroom.users[username];
+        chatroom.emit({
+            event: 'logout',
+            args: [username],
+            filter: _socket => {
+                return _socket.loggedIn || _socket === socket;
+            }
+        });
+        socket.emit('server-message', 'You have been logged out. Please input a username to join.')
     },
     disconnect(socket) {
         chatroom.logout(socket);
@@ -89,13 +114,16 @@ Object.assign(chatroom, {
         if (index > -1) {
             chatroom.splice(index, 1);
         }
+        socket.end();
     },
     emit(event, ...args) {
         let filter;
         if (typeof event === 'object') {
             ({ event, filter, args } = event);
         }
-        const data = unparseMsg({ event, args });
+        const data = unparseMsg({ event, args, status: {
+            users: Object.keys(chatroom.users)
+        }});
         let socket;
         for (let i = 0; i < chatroom.length; i++) {
             socket = chatroom[i];
@@ -110,7 +138,9 @@ Object.assign(chatroom, {
         console.log('Disconnecting all sockets');
         event = event || 'server-message';
         args = args || ['Closing all connections...'];
-        message = unparseMsg({ event, args });
+        message = unparseMsg({ event, args, status: {
+            users: Object.keys(chatroom.users)
+        }});
         for (let i = 0; i < chatroom.length; i++) {
             const socket = chatroom[i];
             if (!socket.destroyed) {

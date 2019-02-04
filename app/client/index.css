@@ -36,14 +36,17 @@ button.reconnect {
     padding: 5px;
     margin: 6px;
     font-size: 23px;
-    transition-property: transform;
-    transition-duration: .7s;
-    transition-timing-function: ease-out;
+    transition: transform .3s ease-out;
+    transition: font-size padding .15s ease-in-out;
     border-radius: 50%;
 }
 button.reconnect:hover {
     cursor: pointer;
     transform: rotate(360deg);
+}
+button.reconnect:active {
+    font-size: 26px;
+    padding: 3px;
 }
 button.reconnect:focus {
     outline: none;

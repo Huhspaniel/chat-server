@@ -1,6 +1,8 @@
 const cmdDesc = {
     dm: '/dm {user} {message} -- Send direct/private message',
     users: '/users -- See list of active users',
+    logout: '/logout',
+    q: '/q -- Disconnect from server',
     help: '/help -- See list of available commands'
 }
 const commands = {
@@ -22,7 +24,7 @@ const commands = {
                     from.emit('dm', from.username, to.username, msg);
                 }
             } else {
-                from.emit('server-message', `User "${username}" is not online`);
+                from.emit('server-message', `User "${username}" does not exist or is not online`);
             }
         }
     },
@@ -34,6 +36,12 @@ const commands = {
         ${Object.keys(chatroom.users).map(user => `<p>- @${user}</p>`).join('')}
       </div>`
         )
+    },
+    logout: () => socket => {
+        socket._stream.emit('data-logout');
+    },
+    q: () => socket => {
+        socket.end();
     },
     help: () => socket => {
         socket.emit(

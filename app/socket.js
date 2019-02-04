@@ -20,7 +20,7 @@ module.exports = function (socket, wsKey) {
         },
         emit: {
             value: function (event, ...args) {
-                return stream.write(unparseMsg({ event, args }));
+                return socket.write(unparseMsg({ event, args }));
             }
         },
         on: {
@@ -31,12 +31,16 @@ module.exports = function (socket, wsKey) {
         },
         write: {
             value: function (data, encoding, cb) {
-                return stream.write(data, encoding, cb);
+                if (!stream.destroyed) {
+                    return stream.write(data, encoding, cb);
+                }
             }
         },
         end: {
             value: function (data, encoding, cb) {
-                stream.end(data, encoding, cb);
+                if (!stream.destroyed) {
+                    stream.end(data, encoding, cb);
+                }
                 return socket;
             }
         },
