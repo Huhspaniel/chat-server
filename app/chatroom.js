@@ -121,9 +121,7 @@ Object.assign(chatroom, {
         if (typeof event === 'object') {
             ({ event, filter, args } = event);
         }
-        const data = unparseMsg({ event, args, status: {
-            users: Object.keys(chatroom.users)
-        }});
+        const data = unparseMsg({ event, args });
         let socket;
         for (let i = 0; i < chatroom.length; i++) {
             socket = chatroom[i];
@@ -138,9 +136,7 @@ Object.assign(chatroom, {
         console.log('Disconnecting all sockets');
         event = event || 'server-message';
         args = args || ['Closing all connections...'];
-        message = unparseMsg({ event, args, status: {
-            users: Object.keys(chatroom.users)
-        }});
+        message = unparseMsg({ event, args });
         for (let i = 0; i < chatroom.length; i++) {
             const socket = chatroom[i];
             if (!socket.destroyed) {
