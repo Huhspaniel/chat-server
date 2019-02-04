@@ -1,10 +1,5 @@
 const { unparseMsg } = require('./message-parsing');
-
-const commands = {
-    dm: '/dm {user} {message} -- Send direct/private message',
-    users: '/users -- See list of active users',
-    help: '/help -- See list of available commands'
-}
+const cmd = require('./commands');
 
 const chatroom = new Array();
 Object.assign(chatroom, {
@@ -49,60 +44,7 @@ Object.assign(chatroom, {
                 socket.emit('pong');
             })
             .on('cmd', function (...args) {
-                args[0] = args[0] || 'help';
-                switch (args[0]) {
-                    case 'help': {
-                        socket.emit(
-                            'info',
-                            `<p style="padding-left:10px; font-weight:bold;">Available commands:</p>
-                        <div style="padding-left: 20px;">
-                          ${Object.values(commands).map(cmd => `<p>- ${cmd}</p>`).join('')}
-                        </div>`
-                        )
-                        break;
-                    }
-                    case 'dm': {
-                        let [username, ...msg] = args.slice(1);
-                        if (!username) {
-                            socket.emit(
-                                'info',
-                                `<p style="padding-left: 10px;">${commands.dm}</p>`
-                            )
-                        } else {
-                            if (username.charAt(0) === '@') username = username.slice(1);
-                            const to = chatroom.users[username];
-                            const from = socket;
-                            if (to) {
-                                msg = msg.join(' ');
-                                if (to === from) {
-                                    socket.emit('dm', from.username, to.username, msg);
-                                } else {
-                                    to.emit('dm', from.username, to.username, msg);
-                                    from.emit('dm', from.username, to.username, msg);
-                                }
-                            } else {
-                                from.emit('server-message', `User "${username}" is not online`);
-                            }
-                        }
-                        break;
-                    }
-                    case 'users': {
-                        socket.emit(
-                            'info',
-                            `<p style="padding-left:10px; font-weight:bold;">Online users:</p>
-                      <div style="padding-left: 20px;">
-                        ${Object.keys(chatroom.users).map(user => `<p>- @${user}</p>`).join('')}
-                      </div>`
-                        )
-                        break;
-                    }
-                    default: {
-                        socket.emit(
-                            'info',
-                            `Command "${args[0]}" not found. Input /help for a list of available commands.`
-                        )
-                    }
-                }
+                cmd(...args)(socket, chatroom);
             })
 
         socket._stream
