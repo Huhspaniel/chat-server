@@ -5,7 +5,7 @@ const chatroom = new Array();
 Object.assign(chatroom, {
     users: {},
     connect(socket) {
-        chatroom.timeoutHandler();
+        chatroom.resetTimeout();
         chatroom.push(socket);
         console.log(`Socket ${socket.info} connected`);
 
@@ -58,7 +58,7 @@ Object.assign(chatroom, {
             })
 
         socket._stream
-            .on('data', chatroom.timeoutHandler)
+            .on('data', chatroom.resetTimeout)
             .on('close', () => {
                 chatroom.disconnect(socket);
             });
@@ -135,7 +135,7 @@ Object.assign(chatroom, {
     close(event, ...args) {
         console.log('Disconnecting all sockets');
         event = event || 'server-message';
-        args = args || ['Closing all connections...'];
+        args = args[0] ? args : ['Closing all lingering connections...'];
         message = unparseMsg({ event, args });
         for (let i = 0; i < chatroom.length; i++) {
             const socket = chatroom[i];
@@ -148,34 +148,40 @@ Object.assign(chatroom, {
     }
 });
 
+async function startInterval(cb, timeout, ...args) { // 
+    setTimeout(() => {
+        cb(...args);
+        setInterval(cb, timeout, ...args);
+    }, 0);
+}
+
 const timeoutProps = {
     timeout: {
-        value: 120000
+        value: 20 // Inactivity of chatroom before timeout (seconds)
     },
-    timeLeft: {
-        get() {
-            return this.timeout - (Date.now() - this.lastActive);
-        }
+    interval: {
+        value: 4 // Interval for checking timeout (seconds)
     },
-    timeoutHandler: {
+    resetTimeout: {
         value() {
-            chatroom.lastActive = Date.now();
-            chatroom.timeoutInterval = chatroom.timeoutInterval || setInterval(() => {
+            let count = Math.round(chatroom.timeout / chatroom.interval);
+            chatroom.timeoutInterval = chatroom.timeoutInterval || startInterval(() => {
                 if (chatroom.length === 0) {
                     chatroom.clearTimeout();
-                } else if (chatroom.timeLeft <= 0) {
+                } else if (count === 0) {
                     chatroom.close();
-                } else if (chatroom.timeLeft <= 60000) {
-                    const seconds = Math.round(chatroom.timeLeft / 1000) + ' seconds'
-                    chatroom.emit('server-message', `No activity detected. Closing all connections in ${seconds}`);
+                } else if (count <= 3) { // number of server messages before timeout
+                    const seconds = count * chatroom.interval + ' seconds'
+                    chatroom.emit('server-message', `No activity detected. Closing chatroom in ${seconds}`);
                 }
-            }, 20000);
+                count--;
+            }, chatroom.interval * 1000);
         }
     },
     clearTimeout: {
         value() {
             clearInterval(chatroom.timeoutInterval);
-            chatroom.timeoutHandler === null;
+            chatroom.timeoutInterval = null;
         }
     }
 }

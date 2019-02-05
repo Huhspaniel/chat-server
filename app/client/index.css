@@ -153,8 +153,8 @@ button.reconnect:focus {
         padding: 0;
     }
     button.reconnect {
-        text-shadow: 0 0 1px var(--box-color);
         position: fixed;
+        z-index: 1;
     }
     .chat-box {
         max-width: none;
