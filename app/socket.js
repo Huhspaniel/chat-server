@@ -125,11 +125,12 @@ module.exports = function (socket, wsKey) {
                     console.error(`Socket ${socket.info} parsing error`);
                     console.error(err.stack);
                     socket.emit('server-error', { name, message }, 'parsing');
-                    return;
+                    break;
                 }
                 case 'EPIPE': {
                     console.error(`Socket ${socket.info} disconnected due to EPIPE error`);
                     stream.end();
+                    break;
                 }
                 default: {
                     console.error(`Socket ${socket.info} disconnected due to%s error`, type ? ' ' + type : '');
