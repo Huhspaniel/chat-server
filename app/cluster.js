@@ -16,9 +16,7 @@ if (cluster.isMaster) {
         const worker = cluster.fork();
         worker.on('message', ({ bytes, filter }) => {
             for (const id in cluster.workers) {
-                if (id != worker.id) {
-                    cluster.workers[id].send({ bytes, filter });
-                }
+                cluster.workers[id].send({ bytes, filter });
             }
         })
     }
