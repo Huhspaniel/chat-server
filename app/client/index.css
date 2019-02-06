@@ -68,13 +68,11 @@ button.reconnect:focus {
 }
 .message span {
     font-weight: bold;
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, .5);
-    letter-spacing: 0.5px;
 }
 
 /* colors */
 .me {
-    color: rgb(1, 205, 167);
+    color: rgb(5, 201, 165);
 }
 .blue {
     color: rgb(1, 50, 213);
@@ -86,16 +84,16 @@ button.reconnect:focus {
     color: rgb(255, 119, 0);
 }
 .dm {
-    color: rgb(255, 247, 0);
+    color: rgb(255, 0, 140);
 }
 .user {
     color: rgb(162, 94, 222);
 }
 .logout {
-    color: rgb(118, 43, 29)
+    color: rgb(145, 38, 19)
 }
 .error {
-    color: rgb(176, 46, 46);
+    color: rgb(218, 43, 43);
 }
 
 .user-input {
