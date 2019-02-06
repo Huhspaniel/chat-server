@@ -37,7 +37,7 @@ button.reconnect {
     margin: 6px;
     font-size: 23px;
     transition: transform .3s ease-out;
-    transition: font-size padding .15s ease-in-out;
+    transition: font-size padding .2s ease-in-out;
     border-radius: 50%;
 }
 button.reconnect:hover {
@@ -61,14 +61,14 @@ button.reconnect:focus {
 }
 .message {
     padding: 8px;
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, .5);
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, .4);
 }
 .message:nth-last-child(even) {
     background-color: rgba(0, 0, 0, 0.1);
 }
 .message span {
     font-weight: bold;
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, .7);
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, .5);
     letter-spacing: 0.5px;
 }
 
