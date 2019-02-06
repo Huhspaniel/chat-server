@@ -36,18 +36,21 @@ if (cluster.isMaster) {
     for (let i = 0; i < cpus; i++) {
         const worker = cluster.fork();
         worker.on('message', ({ users, bytes, filter, pids }) => {
+            Object.assign(process.users, users);
             if (pids) {
                 for (let username in pids) {
+                    Object.assign(users, process.users);
+                    delete users[pids[username]];
                     cluster.workers[pids[username] - process.pid].send({
                         users, bytes, filter, username
                     })
                 }
-            }
-            Object.assign(process.users, users);
-            for (const id in cluster.workers) {
-                Object.assign(users, process.users);
-                delete users[id + process.ppid];
-                cluster.workers[id].send({ users: process.users, bytes, filter });
+            } else {
+                for (const id in cluster.workers) {
+                    Object.assign(users, process.users);
+                    delete users[id + process.pid];
+                    cluster.workers[id].send({ users: process.users, bytes, filter });
+                }
             }
         })
     }

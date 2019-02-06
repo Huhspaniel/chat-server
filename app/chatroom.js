@@ -248,8 +248,10 @@ process.on('message', ({ users, bytes, filter, username }) => {
         buf.writeUInt8(parseInt(bytes[i], 16), i);
     }
     Object.assign(process.users, users);
-    if (chatroom.users.hasOwnProperty(username)) {
-        chatroom.users[username].write(buf, filter ? parseFunction(filter) : null)
+    if (username) {
+        if (chatroom.users.hasOwnProperty(username)) {
+            chatroom.users[username]._write(buf, filter ? parseFunction(filter) : null)
+        }
     } else {
         chatroom.write(buf, filter ? parseFunction(filter) : null);
     }
