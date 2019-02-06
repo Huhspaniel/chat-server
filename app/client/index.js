@@ -64,10 +64,8 @@ function connectSocket() {
     socket.onmessage = event => {
         const data = JSON.parse(event.data);
         if (data == 0) { // ping pong
-            console.log('Server pinged');
             return socket.send(1);
         } else if (data == 1) {
-            console.log('Server ponged');
             return;
         }
         console.log('Server: ', data);

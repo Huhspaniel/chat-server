@@ -43,7 +43,7 @@ const commands = {
         socket._stream.emit('data-logout');
     },
     q: () => socket => {
-        socket.end();
+        socket.close();
     },
     help: () => socket => {
         socket.emit(

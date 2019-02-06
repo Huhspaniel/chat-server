@@ -25,8 +25,10 @@ module.exports = function (socket, wsKey) {
         ping: {
             value: function () {
                 socket.pongHandler = setTimeout(() => {
-                    socket.close('server-message', 'Connection timed out.');
-                }, 10000);
+                    const err = new Error('Socket did not pong the ping');
+                    err.name = 'PingError';
+                    stream.destroy(err);
+                }, 7500);
                 return socket._write(unparseMsg(0));
             }
         },
@@ -77,16 +79,14 @@ module.exports = function (socket, wsKey) {
             try {
                 var data = parseMsg.json(buffer);
             } catch (err) {
-                stream.emit('error', err, 'parsing');
+                stream.emit('error', err);
                 return;
             }
             if (data === null) {
                 return stream.end();
             } else if (data == 0) {
-                console.log(`Socket ${socket.info} pinged`);
                 socket.pong();
             } else if (data == 1) {
-                console.log(`Socket ${socket.info} ponged`);
                 clearTimeout(socket.pongHandler);
             } else {
                 console.log(`Socket ${socket.info}:`, data);
@@ -105,27 +105,35 @@ module.exports = function (socket, wsKey) {
                 console.log(`Socket ${socket.info} disconnected`);
             }
         })
-        .on('error', function (err, type) {
+        .on('error', function (err) {
+            let type;
             const { name, message } = err;
             if (message === 'write EPIPE') {
                 type = 'EPIPE';
+            } else if (name === 'SyntaxError' && message.match(/JSON/)) {
+                type = 'parsing';
+            } else if (name === 'PingError') {
+                type = 'ping';
             }
             switch (type) {
                 case 'parsing': {
-                    console.error(`Socket ${socket.info} parsing error`);
-                    console.error(err.stack);
+                    console.error(`Socket ${socket.info} JSON parsing error`);
                     socket.emit('server-error', { name, message }, 'parsing');
                     break;
                 }
                 case 'EPIPE': {
                     console.error(`Socket ${socket.info} disconnected due to EPIPE error`);
-                    stream.end();
+                    break;
+                }
+                case 'ping': {
+                    console.error(`Socket ${socket.info} disconnected due to no pong :(`);
+                    socket.emit('server-message', 'Connection timed out');
                     break;
                 }
                 default: {
                     console.error(`Socket ${socket.info} disconnected due to%s error`, type ? ' ' + type : '');
                     console.error(err.stack);
-                    stream.end();
+                    stream.destroy(err);
                 }
             }
         })
