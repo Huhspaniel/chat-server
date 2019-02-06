@@ -5,7 +5,7 @@ const { defineTimeout } = require('./timeout');
 const addChatroomTimeout = defineTimeout(90, (chatroom) => {
     chatroom.emit({
         event: 'server-message',
-        args: ['Connection timed out.'],
+        args: ['Connection timed out due to inactivity.'],
         filter: (socket) => {
             return !socket.loggedIn;
         }
@@ -27,14 +27,16 @@ const addChatroomTimeout = defineTimeout(90, (chatroom) => {
             if (chatroom.length === 0) {
                 chatroom.clearTimeout();
             }
+        },
+        postUpdate: (chatroom) => {
+            chatroom.ping();
         }
     }
 );
 const chatroom = addChatroomTimeout(new Array());
 
 const addSocketTimeout = defineTimeout(250, (socket) => {
-    socket.emit('server-message', 'Connection timed out. Disconnecting...');
-    socket.end();
+    socket.close('server-message', 'Connection timed out. Disconnecting...');
 }, {
         interval: 50,
         idlePeriod: 3,
@@ -43,14 +45,12 @@ const addSocketTimeout = defineTimeout(250, (socket) => {
                 socket.emit('server-warning', `Your connection will time out due to inactivity in ${timeLeft} seconds`);
             }
         },
-        preUpdate: (socket) => {
-            if (socket.destroyed) {
+        preUpdate: (socket, { timeLeft }) => {
+            if (socket._destroyed) {
                 socket.clearTimeout();
-            }
-        },
-        postUpdate: (socket, { isIdle }) => {
-            if (!isIdle && !chatroom._timer.isIdle) {
-                socket.emit('ping');
+            } else if (!socket.loggedIn && timeLeft <= 0) {
+                socket.clearTimeout();
+                socket.close('server-message', 'Connection timed out.')
             }
         }
     }
@@ -67,7 +67,7 @@ Object.assign(chatroom, {
         socket.emit('server-message', 'Please input a username to join.');
 
         socket
-            .on('_data', () => {
+            .on('_message', (message) => {
                 chatroom.resetTimeout();
                 socket.resetTimeout();
             })
@@ -165,26 +165,28 @@ Object.assign(chatroom, {
         socket.emit('server-message', 'You have been logged out. Please input a username to join.')
     },
     disconnect(socket) {
-        chatroom.logout(socket);
+        if (socket.loggedIn) {
+            chatroom.logout(socket);
+        }
         const index = chatroom.indexOf(socket);
         if (index > -1) {
             chatroom.splice(index, 1);
         }
-        socket.end();
+        socket.close();
     },
     emit(event, ...args) {
         let filter;
         if (typeof event === 'object') {
             ({ event, filter, args } = event);
         }
-        const data = unparseMsg({ event, args });
+        const data = unparseMsg.json({ event, args });
         let socket;
         for (let i = 0; i < chatroom.length; i++) {
             socket = chatroom[i];
             if (filter && !filter(socket)) {
                 continue;
-            } else if (!socket.destroyed) {
-                socket.write(data);
+            } else if (!socket._destroyed) {
+                socket._write(data);
             }
         }
     },
@@ -192,15 +194,20 @@ Object.assign(chatroom, {
         console.log('Disconnecting all sockets');
         event = event || 'server-message';
         args = args[0] ? args : ['Closing all lingering connections...'];
-        message = unparseMsg({ event, args });
+        message = unparseMsg.json({ event, args });
         for (let i = 0; i < chatroom.length; i++) {
             const socket = chatroom[i];
-            if (!socket.destroyed) {
-                socket.end(socket.loggedIn ? message : '');
+            if (!socket._destroyed) {
+                socket._end(socket.loggedIn ? message : '');
             }
         }
         chatroom.length = 0;
         chatroom.users = {};
+    },
+    ping() {
+        for (let i = 0; i < chatroom.length; i++) {
+            chatroom[i].ping();
+        }
     }
 });
 

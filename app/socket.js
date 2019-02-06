@@ -19,7 +19,25 @@ module.exports = function (socket, wsKey) {
         },
         emit: {
             value: function (event, ...args) {
-                return socket.write(unparseMsg({ event, args }));
+                return socket._write(unparseMsg.json({ event, args }));
+            }
+        },
+        ping: {
+            value: function () {
+                socket.pongHandler = setTimeout(() => {
+                    socket.close('server-message', 'Connection timed out.');
+                }, 10000);
+                return socket._write(unparseMsg(0));
+            }
+        },
+        pong: {
+            value: function () {
+                return socket._write(unparseMsg(1));
+            }
+        },
+        close: {
+            value: function (event, ...args) {
+                return socket._end(unparseMsg.json({ event, args }));
             }
         },
         on: {
@@ -32,14 +50,14 @@ module.exports = function (socket, wsKey) {
                 return socket;
             }
         },
-        write: {
+        _write: {
             value: function (data, encoding, cb) {
                 if (!stream.destroyed) {
                     return stream.write(data, encoding, cb);
                 }
             }
         },
-        end: {
+        _end: {
             value: function (data, encoding, cb) {
                 if (!stream.destroyed) {
                     stream.end(data, encoding, cb);
@@ -47,7 +65,7 @@ module.exports = function (socket, wsKey) {
                 return socket;
             }
         },
-        destroyed: {
+        _destroyed: {
             get() {
                 return stream.destroyed;
             }
@@ -57,21 +75,28 @@ module.exports = function (socket, wsKey) {
     stream
         .on('data', function (buffer) {
             try {
-                var data = parseMsg(buffer);
+                var data = parseMsg.json(buffer);
             } catch (err) {
                 stream.emit('error', err, 'parsing');
                 return;
             }
             if (data === null) {
                 return stream.end();
-            }
-            console.log(`Socket ${socket.info} sent`, data);
-            stream.emit('message', data);
-            if (data.event) {
-                if (data.args instanceof Array) {
-                    stream.emit(`data-${data.event}`, ...data.args);
-                } else {
-                    stream.emit(`data-${data.event}`, data.args);
+            } else if (data == 0) {
+                console.log(`Socket ${socket.info} pinged`);
+                socket.pong();
+            } else if (data == 1) {
+                console.log(`Socket ${socket.info} ponged`);
+                clearTimeout(socket.pongHandler);
+            } else {
+                console.log(`Socket ${socket.info}:`, data);
+                stream.emit('message', data);
+                if (data.event) {
+                    if (data.args instanceof Array) {
+                        stream.emit(`data-${data.event}`, ...data.args);
+                    } else {
+                        stream.emit(`data-${data.event}`, data.args);
+                    }
                 }
             }
         })

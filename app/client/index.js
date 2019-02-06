@@ -62,8 +62,15 @@ function connectSocket() {
         renderMessage('ERROR:', 'Caught error (in console). Try reconnecting', { msgColor: 'error' });
     };
     socket.onmessage = event => {
-        console.log('Received:', JSON.parse(event.data));
         const data = JSON.parse(event.data);
+        if (data == 0) { // ping pong
+            console.log('Server pinged');
+            return socket.send(1);
+        } else if (data == 1) {
+            console.log('Server ponged');
+            return;
+        }
+        console.log('Server: ', data);
         switch (data.event) {
             case 'chat': {
                 const [username, chat] = data.args;
