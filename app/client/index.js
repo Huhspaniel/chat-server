@@ -99,7 +99,6 @@ function connectSocket() {
                     { msgColor: username === myUsername ? 'me' : 'user' }
                 );
                 if (!loggedIn && username === myUsername) {
-                    form[0].value = '';
                     loggedIn = true;
                     form[0].placeholder = '';
                 }
@@ -174,9 +173,9 @@ form.addEventListener('submit', e => {
                 break;
             }
             case 1: {
+                e.target[0].value = '';
                 let event, args;
                 if (loggedIn) {
-                    e.target[0].value = '';
                     if (input.charAt(0) === '/') {
                         event = 'cmd';
                         args = input.slice(1).trim().split(/[\s]/);

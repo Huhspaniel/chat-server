@@ -61,7 +61,7 @@ button.reconnect:focus {
 }
 .message {
     padding: 8px;
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, .4);
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, .1);
 }
 .message:nth-last-child(even) {
     background-color: rgba(0, 0, 0, 0.1);
@@ -72,22 +72,22 @@ button.reconnect:focus {
 
 /* colors */
 .me {
-    color: rgb(5, 201, 165);
+    color: rgb(0, 187, 153);
 }
 .blue {
-    color: rgb(1, 50, 213);
+    color: rgb(0, 60, 255);
 }
 .gray {
     color: rgb(85, 85, 85);
 }
 .orange {
-    color: rgb(255, 119, 0);
+    color: rgb(223, 104, 0);
 }
 .dm {
     color: rgb(255, 0, 140);
 }
 .user {
-    color: rgb(162, 94, 222);
+    color: rgb(164, 91, 228);
 }
 .logout {
     color: rgb(145, 38, 19)
