@@ -160,9 +160,44 @@ form[0].addEventListener('input', e => {
     }
 })
 
+const cmds = [];
+Object.defineProperties(cmds, {
+    index: {
+        value: 0,
+        writable: true
+    },
+    prev: {
+        get: () => {
+            if (cmds.index !== cmds.length) {
+                cmds.index++;
+            }
+            return cmds[cmds.length - cmds.index] || '';
+        }
+    },
+    next: {
+        get: () => {
+            if (cmds.index !== 0) {
+                cmds.index--
+            }
+            return cmds[cmds.length - cmds.index] || '';
+        }
+    },
+    last: {
+        get: () => cmds[cmds.length - 1]
+    },
+    push: {
+        value: function (cmd) {
+            cmds.index = 0;
+            if (cmd !== cmds.last) {
+                cmds[cmds.length] = cmd;
+            }
+        }
+    }
+})
 form.addEventListener('submit', e => {
     e.preventDefault();
     const input = e.target[0].value.trim();
+    cmds.index = 0;
     if (input) {
         const { readyState } = socket;
         switch (readyState) {
@@ -179,12 +214,16 @@ form.addEventListener('submit', e => {
                     if (input.charAt(0) === '/') {
                         event = 'cmd';
                         args = input.slice(1).trim().split(/[\s]/);
+                        let cmd = args;
                         switch (args[0]) {
                             case 'dm': {
                                 args[2] = args.splice(2).join(' ');
+                                cmd = cmd.slice(0, 2);
                                 break;
                             }
                         }
+                        cmd = cmd.join(' ');
+                        cmds.push(cmd);
                     } else {
                         event = 'chat';
                         args = [input];
@@ -206,4 +245,19 @@ form.addEventListener('submit', e => {
             }
         }
     }
+})
+form[0].addEventListener('keydown', (e) => {
+    let cmd;
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (cmds.index === 0) return;
+        cmd = cmds.next;
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (cmds.index === cmds.length) return;
+        cmd = cmds.prev;
+    } else {
+        return;
+    }
+    e.target.value = cmd ? `/${cmd} ` : '';
 })
