@@ -2,28 +2,79 @@ const { unparseMsg } = require('./message-parsing');
 const cmd = require('./commands');
 const { defineTimeout } = require('./timeout');
 
-const chatroom = defineTimeout(60, function () {
-    this.close();
+const addChatroomTimeout = defineTimeout(90, (chatroom) => {
+    chatroom.emit({
+        event: 'server-message',
+        args: ['Connection timed out.'],
+        filter: (socket) => {
+            return !socket.loggedIn;
+        }
+    })
+    chatroom.close();
 }, {
-    interval: 15,
-    idleIntervals: 3,
-    onIdle: function (timeLeft) {
-        this.emit('server-message', `No activity detected. Closing chatroom in ${timeLeft} seconds`)
-    },
-    preCheck: function (timeLeft) {
-        if (this.length === 0) {
-            this.stopTimeout();
+        interval: 15,
+        idlePeriod: 3,
+        onIdle: (chatroom, { timeLeft }) => {
+            chatroom.emit({
+                event: 'server-message',
+                args: [`No activity detected. Closing chatroom in ${timeLeft} seconds`],
+                filter: (socket) => {
+                    return socket.loggedIn;
+                }
+            })
+        },
+        preUpdate: (chatroom) => {
+            if (chatroom.length === 0) {
+                chatroom.clearTimeout();
+            }
         }
     }
-})(new Array());
+);
+const chatroom = addChatroomTimeout(new Array());
+
+const addSocketTimeout = defineTimeout(250, (socket) => {
+    socket.emit('server-message', 'Connection timed out. Disconnecting...');
+    socket.end();
+}, {
+        interval: 50,
+        idlePeriod: 3,
+        onIdle: (socket, { timeLeft }) => {
+            if (!chatroom._timer.isIdle && socket.loggedIn) {
+                socket.emit('server-warning', `Your connection will time out due to inactivity in ${timeLeft} seconds`);
+            }
+        },
+        preUpdate: (socket) => {
+            if (socket.destroyed) {
+                socket.clearTimeout();
+            }
+        },
+        postUpdate: (socket, { isIdle }) => {
+            if (!isIdle && !chatroom._timer.isIdle) {
+                socket.emit('ping');
+            }
+        }
+    }
+);
 
 Object.assign(chatroom, {
     users: {},
     connect(socket) {
-        chatroom.resetTimeout();
+        socket = addSocketTimeout(socket);
         chatroom.push(socket);
         console.log(`Socket ${socket.info} connected`);
-        // socket.emit('server-message', 'Please input a username to join');
+        chatroom.resetTimeout();
+        socket.resetTimeout();
+        socket.emit('server-message', 'Please input a username to join.');
+
+        socket
+            .on('_data', () => {
+                chatroom.resetTimeout();
+                socket.resetTimeout();
+            })
+            .on('_close', () => {
+                socket.clearTimeout();
+                chatroom.disconnect(socket);
+            });
 
         Object.defineProperty(socket, 'loggedIn', {
             get() {
@@ -53,7 +104,7 @@ Object.assign(chatroom, {
                         socket.emit('error', 'Chat message cannot exceed 255 characters');
                     } else {
                         chatroom.emit({
-                            event: 'chat', 
+                            event: 'chat',
                             args: [socket.username, msg],
                             filter: socket => {
                                 return socket.loggedIn;
@@ -62,9 +113,6 @@ Object.assign(chatroom, {
                     }
                 }
             })
-            .on('ping', function () {
-                socket.emit('pong');
-            })
             .on('cmd', function (...args) {
                 if (!socket.loggedIn) {
                     socket.emit('server-message', 'Please input a username to join');
@@ -72,12 +120,6 @@ Object.assign(chatroom, {
                     cmd(...args)(socket, chatroom);
                 }
             })
-
-        socket._stream
-            .on('data', chatroom.resetTimeout)
-            .on('close', () => {
-                chatroom.disconnect(socket);
-            });
     },
     login(socket, username) {
         socket.username = username;
@@ -93,7 +135,7 @@ Object.assign(chatroom, {
             socket.emit('error', 'Username cannot have spaces');
         } else if (username.length > 18) {
             socket.emit('error', 'Username cannot exceed 18 characters');
-        } else if (!username.match(/^[a-z0-9_-]+$/i)) {
+        } else if (!username.match(/^[a-z0-9_]+$/i)) {
             socket.emit('error', 'Username contains invalid characters')
         } else if (chatroom.users[username]) {
             socket.emit('error', `Username ${username} is in use`);
@@ -154,7 +196,7 @@ Object.assign(chatroom, {
         for (let i = 0; i < chatroom.length; i++) {
             const socket = chatroom[i];
             if (!socket.destroyed) {
-                socket.end(message);
+                socket.end(socket.loggedIn ? message : '');
             }
         }
         chatroom.length = 0;

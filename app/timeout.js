@@ -1,24 +1,18 @@
-function startInterval(cb, timeout, ...args) {
-    cb(...args);
-    return setInterval(cb, timeout, ...args);
-}
-
 /**
  * Defines timeout functionality for any object.
  * 
  * This is a partial application and returns a function that
  * can be passed an object on which the timeout should be
- * applied. Within all callback functions, 'this' refers
- * to that object.
+ * applied.
  * 
- * @param {Number}   timeout                    Time before timeout (seconds).
- * @param {Function} cb                         Called on timeout.
+ * @param {Number}   timeout                    Timeout in seconds.
+ * @param {Function} onTimeout                  Invoked on timeout.
  * @param {Object}   [options]                  Optional parameters.
- * @param {Number}   [options.interval=20]      Time between timeout checks (seconds).
- * @param {Number}   [options.idleIntervals=3]  Number of times to call onIdle.
- * @param {Function} [options.onIdle]           Called when close to timing out.
- * @param {Function} [options.preCheck]         Timeout check pre-hook
- * @param {Function} [options.postCheck]        Timeout check post-hook
+ * @param {Number}   [options.interval=timeout] Interval between updates in seconds. Defaults to equal value of timeout.
+ * @param {Function} [options.onIdle]           Invoked on update if is idle (defined by options.idlePeriod)
+ * @param {Number}   [options.idlePeriod=0]     Defined as a number of intervals preceeding the timeout. Defaults to 0.
+ * @param {Function} [options.preUpdate]        Update pre-hook.
+ * @param {Function} [options.postUpdate]       Update post-hook.
  * 
  * @returns {(obj: Object) => Object} Partially applied function.
  */
@@ -36,71 +30,137 @@ function defineTimeout(timeout, onTimeout, options) {
         }
     }
 
+    let interval, idlePeriod, onIdle, preUpdate, postUpdate;
     ({
         timeout,
         onTimeout,
-        interval = 20,
-        idleIntervals = 3,
-        onIdle = () => {},
-        preCheck = () => {},
-        postCheck = () => {},
+        interval = timeout,
+        idlePeriod = 0,
+        onIdle = () => { },
+        preUpdate = () => { },
+        postUpdate = () => { },
     } = options);
     if (!timeout || !onTimeout) {
         return;
     }
 
-    const _timeout = {
-        timeout,
-        onTimeout,
-        interval,
-        idleIntervals,
-        onIdle,
-        preCheck,
-        postCheck,
-    };
-
-    let count;
-    Object.defineProperties(_timeout, {
-        isIdle: {
-            get: () => _timeout.idleIntervals <= count
-        }
-    })
     return (obj) => {
-        let handler = true;
-        Object.assign(_timeout, {
-            reset() {
-                count = Math.round(_timeout.timeout / _timeout.interval);
-                clearInterval(handler);
-                handler = startInterval(() => {
-                    const timeLeft = count * _timeout.interval
-                    _timeout.preCheck.apply(obj, [timeLeft]);
-                    if (handler) {
-                        if (count === 0) {
-                            _timeout.stop();
-                            _timeout.onTimeout.apply(obj);
-                            return;
-                        } else if (count <= _timeout.idleIntervals) {
-                            _timeout.onIdle.apply(obj, [timeLeft]);
-                        }
-                        count--;
-                        _timeout.postCheck.apply(obj, [timeLeft]);
-                    }
-                }, _timeout.interval * 1000);
+        let count, handler, timeLeft, isIdle;
+        const _timer = Object.defineProperties({}, {
+            count: { get: () => count },
+            timeLeft: { get: () => timeLeft },
+            isIdle: { get: () => isIdle },
+            clear: {
+                value: function () {
+                    clearInterval(handler);
+                    handler = null;
+                }
             },
-            stop() {
-                clearInterval(handler);
-                handler = null;
+            reset: {
+                value: function () {
+                    _timer.clear();
+                    count = Math.round(timeout / interval) - 1;
+                    handler = setInterval(() => {
+                        timeLeft = count * interval;
+                        isIdle = count <= idlePeriod;
+                        preUpdate(obj, {
+                            count, timeLeft, isIdle
+                        });
+                        if (handler) {
+                            if (count === 0) {
+                                _timer.clear();
+                                onTimeout(obj);
+                                return;
+                            } else if (count <= idlePeriod) {
+                                onIdle(obj, {
+                                    count, timeLeft, isIdle
+                                });
+                            }
+                            count--;
+                            postUpdate(obj, {
+                                count, timeLeft, isIdle
+                            });
+                        }
+                    }, interval * 1000);
+                }
+            },
+            timeout: {
+                get: () => timeout,
+                set: (val) => {
+                    if (typeof val !== 'number') {
+                        throw new Error('timeout must be of type \'number\'');
+                    } else {
+                        timeout = val;
+                    }
+                }
+            },
+            interval: {
+                get: () => interval,
+                set: (val) => {
+                    if (typeof val !== 'number') {
+                        throw new Error('interval must be of type \'number\'');
+                    } else {
+                        interval = val;
+                    }
+                }
+            },
+            idlePeriod: {
+                get: () => idlePeriod,
+                set: (val) => {
+                    if (typeof val !== 'number') {
+                        throw new Error('interval must be of type \'number\'')
+                    } else {
+                        idlePeriod = val;
+                    }
+                }
+            },
+            onTimeout: {
+                set: (func) => {
+                    if (typeof func === 'function') {
+                        onTimeout = func;
+                    } else {
+                        throw new Error('onTimeout must be of type \'function\'');
+                    }
+                }
+            },
+            onIdle: {
+                set: (func) => {
+                    if (typeof func === 'function') {
+                        onIdle = func;
+                    } else {
+                        throw new Error('onIdle must be of type \'function\'');
+                    }
+                }
+            },
+            postUpdate: {
+                set: (func) => {
+                    if (typeof func === 'function') {
+                        postUpdate = func;
+                    } else {
+                        throw new Error('postUpdate must be of type \'function\'');
+                    }
+                }
+            },
+            preUpdate: {
+                set: (func) => {
+                    if (typeof func === 'function') {
+                        preUpdate = func;
+                    } else {
+                        throw new Error('preUpdate must be of type \'function\'');
+                    }
+                }
             }
-        })
+        });
+
         return Object.defineProperties(obj, {
-            _timeout: {
-                get: () => _timeout
+            _timer: {
+                get: () => _timer
             },
             resetTimeout: {
-                get: () => _timeout.reset
+                get: () => _timer.reset
             },
-            stopTimeout: {
-                get: () => _timeout.stop
+            clearTimeout: {
+                get: () => _timer.clear
             }
         })
     }

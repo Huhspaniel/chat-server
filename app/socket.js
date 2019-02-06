@@ -1,28 +1,4 @@
 const { parseMsg, unparseMsg } = require('./message-parsing');
-const { defineTimeout } = require('./timeout');
-
-const addSocketTimeout = defineTimeout(600, function () {
-    this.emit('server-message', 'Connection timed out. Disconnecting...');
-    this.end();
-}, {
-    interval: 50,
-    idleIntervals: 3,
-    onIdle: function (timeLeft) {
-        this.emit('server-warning', `Your connection will time out due to inactivity in ${timeLeft} seconds`);
-    },
-    preCheck: function (timeLeft) {
-        if (this.destroyed) {
-            this.stopTimeout();
-        }
-    },
-    postCheck: function (timeLeft) {
-        if (!this.loggedIn) {
-            this.emit('server-message', 'Please input a username to join.');
-        } else {
-            this.emit('ping');
-        }
-    }
-})
 
 module.exports = function (socket, wsKey) {
     const stream = socket;
@@ -48,7 +24,11 @@ module.exports = function (socket, wsKey) {
         },
         on: {
             value: function (event, cb) {
-                stream.on(`data-${event}`, cb);
+                if (event.charAt(0) === '_') {
+                    stream.on(event.slice(1), cb);
+                } else {
+                    stream.on(`data-${event}`, cb);
+                }
                 return socket;
             }
         },
@@ -74,12 +54,8 @@ module.exports = function (socket, wsKey) {
         }
     });
 
-    socket = addSocketTimeout(socket);
-    socket.resetTimeout();
-
     stream
         .on('data', function (buffer) {
-            socket.resetTimeout();
             try {
                 var data = parseMsg(buffer);
             } catch (err) {
@@ -90,7 +66,7 @@ module.exports = function (socket, wsKey) {
                 return stream.end();
             }
             console.log(`Socket ${socket.info} sent`, data);
-            stream.emit('data-raw', data);
+            stream.emit('message', data);
             if (data.event) {
                 if (data.args instanceof Array) {
                     stream.emit(`data-${data.event}`, ...data.args);
@@ -103,7 +79,6 @@ module.exports = function (socket, wsKey) {
             if (!hadError) {
                 console.log(`Socket ${socket.info} disconnected`);
             }
-            clearInterval(socket.timeoutHandler);
         })
         .on('error', function (err, type) {
             const { name, message } = err;
