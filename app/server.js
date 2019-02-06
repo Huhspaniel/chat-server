@@ -52,15 +52,14 @@ const server = http.createServer((req, res) => {
 
 ws.listen(server, (socket) => {
   chatroom.connect(socket);
-})
+});
 
 server.listen(PORT, HOST, () => {
-  console.log(`Server listening on http://${HOST}:${PORT}\n`);
+  console.log(`Worker ${process.pid} listening on http://${HOST}:${PORT}`);
+  process.pid
 })
 
-process.on('message', (msg) => {
-  if (msg === 'close') {
-    server.close();
-    process.exit();
-  }
+process.on('disconnect', (msg) => {
+  server.close();
+  process.exit();
 });

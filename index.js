@@ -9,5 +9,5 @@ if (process.env.NODE_ENV !== 'production') {
         console.log = timestampLog.bind(console, process.stdout);
         console.error = timestampLog.bind(console, process.stderr);
     }
-    require('./app/server');
+    require('./app/cluster');
 }

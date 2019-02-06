@@ -106,7 +106,7 @@ Object.assign(chatroom, {
                         chatroom.emit({
                             event: 'chat',
                             args: [socket.username, msg],
-                            filter: socket => {
+                            filter: (socket) => {
                                 return socket.loggedIn;
                             }
                         });
@@ -144,8 +144,8 @@ Object.assign(chatroom, {
             chatroom.emit({
                 event: 'login',
                 args: [username],
-                filter: _socket => {
-                    return _socket.loggedIn;
+                filter: (socket) => {
+                    return socket.loggedIn;
                 }
             });
             socket.emit('server-message', 'Welcome! Type in "/help" for a list of available commands!')
@@ -158,8 +158,8 @@ Object.assign(chatroom, {
         chatroom.emit({
             event: 'logout',
             args: [username],
-            filter: _socket => {
-                return _socket.loggedIn || _socket === socket;
+            filter: (_socket) => {
+                return _socket.loggedIn || _socket.id === socket.id;
             }
         });
         socket.emit('server-message', 'You have been logged out. Please input a username to join.')
@@ -179,14 +179,21 @@ Object.assign(chatroom, {
         if (typeof event === 'object') {
             ({ event, filter, args } = event);
         }
-        const data = unparseMsg.json({ event, args });
+        const buf = unparseMsg.json({ event, args });
+        let bytes = [];
+        for (let i = 0; i <= buf.length - 1; i++) {
+            bytes.push(buf.readUInt8(i).toString(16));
+        }
+        process.send({
+            bytes, filter: filter ? unparseArrowFunc(filter) : null
+        });
         let socket;
         for (let i = 0; i < chatroom.length; i++) {
             socket = chatroom[i];
             if (filter && !filter(socket)) {
                 continue;
             } else if (!socket._destroyed) {
-                socket._write(data);
+                socket._write(buf);
             }
         }
     },
@@ -208,46 +215,34 @@ Object.assign(chatroom, {
         for (let i = 0; i < chatroom.length; i++) {
             chatroom[i].ping();
         }
+    },
+    write(buf, filter) {
+        let socket;
+        for (let i = 0; i < chatroom.length; i++) {
+            socket = chatroom[i]
+            if (filter && !filter(socket)) {
+                continue;
+            } else if (!socket._destroyed) {
+                socket._write(buf);
+            }
+        }
     }
 });
 
-// function startInterval(cb, timeout, ...args) {
-//     cb(...args);
-//     return setInterval(cb, timeout, ...args);
-// }
+process.on('message', ({ bytes, filter }) => {
+  const buf = Buffer.alloc(bytes.length);
+  for (let i = 0; i < bytes.length; i++) {
+    buf.writeUInt8(parseInt(bytes[i], 16), i);
+  }
+  chatroom.write(buf, filter ?  Function(...filter) : null);
+});
 
-// const timeoutProps = {
-//     timeout: {
-//         value: 20 // Inactivity of chatroom before timeout (seconds)
-//     },
-//     interval: {
-//         value: 4 // Interval for checking timeout (seconds)
-//     },
-//     resetTimeout: {
-//         value() {
-//             chatroom.clearTimeout();
-//             let count = Math.round(chatroom.timeout / chatroom.interval);
-//             console.log('ran resetTimeout');
-//             chatroom.timeoutInterval = chatroom.timeoutInterval || startInterval(() => {
-//                 if (chatroom.length === 0) {
-//                     chatroom.clearTimeout();
-//                 } else if (count === 0) {
-//                     chatroom.close();
-//                 } else if (count <= 3) { // number of server messages before timeout
-//                     const seconds = count * chatroom.interval + ' seconds'
-//                     chatroom.emit('server-message', `No activity detected. Closing chatroom in ${seconds}`);
-//                 }
-//                 count--;
-//             }, chatroom.interval * 1000);
-//         }
-//     },
-//     clearTimeout: {
-//         value() {
-//             clearInterval(chatroom.timeoutInterval);
-//             chatroom.timeoutInterval = null;
-//         }
-//     }
-// }
-// Object.defineProperties(chatroom, timeoutProps);
+function unparseArrowFunc(func) {
+    const str = func.toString();
+    console.log(str);
+    const args = str.match(/\(([^\)]+)\)/)[1].trim().split(', ');
+    const body = str.match(/\{([^\)]+)\}/)[0];
+    return [ ...args, body ];
+}
 
 module.exports = chatroom;
