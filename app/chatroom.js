@@ -2,7 +2,7 @@ const { unparseMsg } = require('./message-parsing');
 const cmd = require('./commands');
 const { defineTimeout } = require('./timeout');
 
-const addChatroomTimeout = defineTimeout(90, (chatroom) => {
+const addChatroomTimeout = defineTimeout(80, (chatroom) => {
     chatroom.emit({
         event: 'server-message',
         args: ['Connection timed out due to inactivity.'],
@@ -12,7 +12,7 @@ const addChatroomTimeout = defineTimeout(90, (chatroom) => {
     })
     chatroom.close();
 }, {
-        interval: 15,
+        interval: 20,
         idlePeriod: 3,
         onIdle: (chatroom, { timeLeft }) => {
             chatroom.emit({
@@ -48,7 +48,7 @@ const addSocketTimeout = defineTimeout(250, (socket) => {
         preUpdate: (socket, { timeLeft }) => {
             if (socket._destroyed) {
                 socket.clearTimeout();
-            } else if (!socket.loggedIn && timeLeft <= 0) {
+            } else if (!socket.loggedIn && timeLeft <= 150) {
                 socket.clearTimeout();
                 socket.close('server-message', 'Connection timed out.')
             }

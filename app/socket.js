@@ -28,7 +28,7 @@ module.exports = function (socket, wsKey) {
                     const err = new Error('Socket did not pong the ping');
                     err.name = 'PingError';
                     stream.destroy(err);
-                }, 7500);
+                }, 15000);
                 return socket._write(unparseMsg(0));
             }
         },
