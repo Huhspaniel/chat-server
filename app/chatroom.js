@@ -1,13 +1,29 @@
 const { unparseMsg } = require('./message-parsing');
 const cmd = require('./commands');
+const { defineTimeout } = require('./timeout');
 
-const chatroom = new Array();
+const chatroom = defineTimeout(60, function () {
+    this.close();
+}, {
+    interval: 15,
+    idleIntervals: 3,
+    onIdle: function (timeLeft) {
+        this.emit('server-message', `No activity detected. Closing chatroom in ${timeLeft} seconds`)
+    },
+    preCheck: function (timeLeft) {
+        if (this.length === 0) {
+            this.stopTimeout();
+        }
+    }
+})(new Array());
+
 Object.assign(chatroom, {
     users: {},
     connect(socket) {
         chatroom.resetTimeout();
         chatroom.push(socket);
         console.log(`Socket ${socket.info} connected`);
+        // socket.emit('server-message', 'Please input a username to join');
 
         Object.defineProperty(socket, 'loggedIn', {
             get() {
@@ -62,8 +78,6 @@ Object.assign(chatroom, {
             .on('close', () => {
                 chatroom.disconnect(socket);
             });
-
-        socket.emit('server-message', 'Please input a username to join');
     },
     login(socket, username) {
         socket.username = username;
@@ -148,43 +162,43 @@ Object.assign(chatroom, {
     }
 });
 
-async function startInterval(cb, timeout, ...args) { // 
-    setTimeout(() => {
-        cb(...args);
-        setInterval(cb, timeout, ...args);
-    }, 0);
-}
+// function startInterval(cb, timeout, ...args) {
+//     cb(...args);
+//     return setInterval(cb, timeout, ...args);
+// }
 
-const timeoutProps = {
-    timeout: {
-        value: 20 // Inactivity of chatroom before timeout (seconds)
-    },
-    interval: {
-        value: 4 // Interval for checking timeout (seconds)
-    },
-    resetTimeout: {
-        value() {
-            let count = Math.round(chatroom.timeout / chatroom.interval);
-            chatroom.timeoutInterval = chatroom.timeoutInterval || startInterval(() => {
-                if (chatroom.length === 0) {
-                    chatroom.clearTimeout();
-                } else if (count === 0) {
-                    chatroom.close();
-                } else if (count <= 3) { // number of server messages before timeout
-                    const seconds = count * chatroom.interval + ' seconds'
-                    chatroom.emit('server-message', `No activity detected. Closing chatroom in ${seconds}`);
-                }
-                count--;
-            }, chatroom.interval * 1000);
-        }
-    },
-    clearTimeout: {
-        value() {
-            clearInterval(chatroom.timeoutInterval);
-            chatroom.timeoutInterval = null;
-        }
-    }
-}
-Object.defineProperties(chatroom, timeoutProps);
+// const timeoutProps = {
+//     timeout: {
+//         value: 20 // Inactivity of chatroom before timeout (seconds)
+//     },
+//     interval: {
+//         value: 4 // Interval for checking timeout (seconds)
+//     },
+//     resetTimeout: {
+//         value() {
+//             chatroom.clearTimeout();
+//             let count = Math.round(chatroom.timeout / chatroom.interval);
+//             console.log('ran resetTimeout');
+//             chatroom.timeoutInterval = chatroom.timeoutInterval || startInterval(() => {
+//                 if (chatroom.length === 0) {
+//                     chatroom.clearTimeout();
+//                 } else if (count === 0) {
+//                     chatroom.close();
+//                 } else if (count <= 3) { // number of server messages before timeout
+//                     const seconds = count * chatroom.interval + ' seconds'
+//                     chatroom.emit('server-message', `No activity detected. Closing chatroom in ${seconds}`);
+//                 }
+//                 count--;
+//             }, chatroom.interval * 1000);
+//         }
+//     },
+//     clearTimeout: {
+//         value() {
+//             clearInterval(chatroom.timeoutInterval);
+//             chatroom.timeoutInterval = null;
+//         }
+//     }
+// }
+// Object.defineProperties(chatroom, timeoutProps);
 
 module.exports = chatroom;

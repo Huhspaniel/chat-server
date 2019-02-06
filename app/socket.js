@@ -1,9 +1,32 @@
 const { parseMsg, unparseMsg } = require('./message-parsing');
+const { defineTimeout } = require('./timeout');
+
+const addSocketTimeout = defineTimeout(600, function () {
+    this.emit('server-message', 'Connection timed out. Disconnecting...');
+    this.end();
+}, {
+    interval: 50,
+    idleIntervals: 3,
+    onIdle: function (timeLeft) {
+        this.emit('server-warning', `Your connection will time out due to inactivity in ${timeLeft} seconds`);
+    },
+    preCheck: function (timeLeft) {
+        if (this.destroyed) {
+            this.stopTimeout();
+        }
+    },
+    postCheck: function (timeLeft) {
+        if (!this.loggedIn) {
+            this.emit('server-message', 'Please input a username to join.');
+        } else {
+            this.emit('ping');
+        }
+    }
+})
 
 module.exports = function (socket, wsKey) {
     const stream = socket;
-
-    const socketProps = {
+    socket = Object.defineProperties({}, {
         id: {
             get() {
                 if (wsKey) {
@@ -49,47 +72,14 @@ module.exports = function (socket, wsKey) {
                 return stream.destroyed;
             }
         }
-    };
-    const timeoutProps = {
-        timeout: {
-            value: 825000
-        },
-        lastActive: {
-            value: Date.now(),
-            writable: true
-        },
-        timeLeft: {
-            get() {
-                return socket.timeout - socket.timeInactive;
-            }
-        },
-        timeoutHandler: {
-            value: setInterval(() => {
-                if (!socket.loggedIn) {
-                    socket.emit('server-message', 'Please input a username to join.');
-                } else {
-                    socket.emit('ping');
-                    if (socket.timeLeft <= 0) {
-                        socket.emit('server-message', 'Connection timed out. Disconnecting...');
-                        clearInterval(socket.timeoutHandler);
-                        socket.end();
-                    } else if (socket.timeLeft <= 120000) {
-                        const seconds = Math.round(socket.timeLeft / 1000) + ' seconds'
-                        socket.emit('server-warning', `Your connection will time out due to inactivity in ${seconds}`);
-                    }
-                }
-            }, 55000)
-        }
-    }
-
-    socket = Object.defineProperties({}, {
-        ...socketProps,
-        ...timeoutProps
     });
+
+    socket = addSocketTimeout(socket);
+    socket.resetTimeout();
 
     stream
         .on('data', function (buffer) {
-            socket.lastActive = Date.now();
+            socket.resetTimeout();
             try {
                 var data = parseMsg(buffer);
             } catch (err) {
