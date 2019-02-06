@@ -1,5 +1,26 @@
 const cluster = require('cluster');
 const os = require('os');
+process.users = {};
+Object.defineProperties(process.users, {
+    findPID: {
+        value: function (username) {
+            for (let pid in process.users) {
+                if (process.users[pid].includes(username)) {
+                    return pid;
+                }
+            }
+        }
+    },
+    array: {
+        get: function () {
+            let users = [];
+            for (let pid in process.users) {
+                users = users.concat(process.users[pid]);
+            }
+            return users;
+        }
+    }
+})
 
 if (cluster.isMaster) {
     const cpus = os.cpus().length;
@@ -14,9 +35,19 @@ if (cluster.isMaster) {
     console.log(`Forking for ${cpus} CPUs`);
     for (let i = 0; i < cpus; i++) {
         const worker = cluster.fork();
-        worker.on('message', ({ bytes, filter }) => {
+        worker.on('message', ({ users, bytes, filter, pids }) => {
+            if (pids) {
+                for (let username in pids) {
+                    cluster.workers[pids[username] - process.pid].send({
+                        users, bytes, filter, username
+                    })
+                }
+            }
+            Object.assign(process.users, users);
             for (const id in cluster.workers) {
-                cluster.workers[id].send({ bytes, filter });
+                Object.assign(users, process.users);
+                delete users[id + process.ppid];
+                cluster.workers[id].send({ users: process.users, bytes, filter });
             }
         })
     }

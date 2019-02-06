@@ -26,7 +26,19 @@ const commands = {
                     from.emit('dm', from.username, to.username, msg);
                 }
             } else {
-                from.emit('server-message', `User "${username}" does not exist or is not online`);
+                const pid = process.users.findPID(username);
+                if (pid) {
+                    chatroom.emit.global({
+                        event: 'dm',
+                        args: [socket.username, username, msg],
+                        pids: {
+                            [username]: pid,
+                            [socket.username]: process.pid
+                        }
+                    })
+                } else {
+                    from.emit('server-message', `User "${username}" does not exist or is not online`);
+                }
             }
         }
     },
@@ -35,7 +47,7 @@ const commands = {
             'info',
             `<p style="padding-left:10px; font-weight:bold;">Online users:</p>
       <div style="padding-left: 20px;">
-        ${Object.keys(chatroom.users).map(user => `<p>- @${user}</p>`).join('')}
+        ${process.users.array.map(user => `<p>- @${user}</p>`).join('')}
       </div>`
         )
     },

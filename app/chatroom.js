@@ -2,7 +2,7 @@ const { unparseMsg } = require('./message-parsing');
 const cmd = require('./commands');
 const { defineTimeout } = require('./timeout');
 
-const addChatroomTimeout = defineTimeout(20, (chatroom) => {
+const addChatroomTimeout = defineTimeout(100, (chatroom) => {
     chatroom.emit.room({
         event: 'server-message',
         args: ['Connection timed out due to inactivity.'],
@@ -12,14 +12,14 @@ const addChatroomTimeout = defineTimeout(20, (chatroom) => {
     })
     chatroom.close();
 }, {
-        interval: 5,
+        interval: 20,
         idlePeriod: 3,
         onIdle: (chatroom, { timeLeft }) => {
             chatroom.emit.room({
                 event: 'server-warning',
                 args: [`Your connection will time out due to inactivity in ${timeLeft} seconds`],
                 filter: (socket) => {
-                    return socket.loggedIn && process.pid == socket.pid;
+                    return socket.loggedIn;
                 }
             })
         },
@@ -139,9 +139,9 @@ Object.assign(chatroom, {
             }
         },
         global(event, ...args) {
-            let filter;
+            let filter, pids;
             if (typeof event === 'object') {
-                ({ event, filter, args } = event);
+                ({ event, filter, args, pids } = event);
             }
             const buf = unparseMsg.json({ event, args });
 
@@ -150,10 +150,14 @@ Object.assign(chatroom, {
                 bytes.push(buf.readUInt8(i).toString(16));
             }
             process.send({
+                users: {
+                    [process.pid]: Object.keys(chatroom.users)
+                },
                 bytes,
                 filter: typeof filter === 'string'
                     ? filter
-                    : null
+                    : null,
+                pids
             });
         }
     },
@@ -201,7 +205,7 @@ Object.assign(chatroom, {
             socket.emit('error', 'Username cannot exceed 18 characters');
         } else if (!username.match(/^[a-z0-9_]+$/i)) {
             socket.emit('error', 'Username contains invalid characters')
-        } else if (chatroom.users[username]) {
+        } else if (process.users.findPID(username) || chatroom.hasOwnProperty(username)) {
             socket.emit('error', `Username ${username} is in use`);
         } else {
             chatroom.users[username] = socket;
@@ -238,12 +242,17 @@ Object.assign(chatroom, {
     }
 });
 
-process.on('message', ({ bytes, filter }) => {
+process.on('message', ({ users, bytes, filter, username }) => {
     const buf = Buffer.alloc(bytes.length);
     for (let i = 0; i < bytes.length; i++) {
         buf.writeUInt8(parseInt(bytes[i], 16), i);
     }
-    chatroom.write(buf, filter ? parseFunction(filter) : null);
+    Object.assign(process.users, users);
+    if (chatroom.users.hasOwnProperty(username)) {
+        chatroom.users[username].write(buf, filter ? parseFunction(filter) : null)
+    } else {
+        chatroom.write(buf, filter ? parseFunction(filter) : null);
+    }
 });
 
 /**
