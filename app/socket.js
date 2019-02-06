@@ -89,7 +89,7 @@ module.exports = function (socket, wsKey) {
             } else if (data == 1) {
                 clearTimeout(socket.pongHandler);
             } else {
-                console.log(`Socket ${socket.info}:`, data);
+                console.log(`Socket ${socket.info} ->`, data);
                 stream.emit('message', data);
                 if (data.event) {
                     if (data.args instanceof Array) {

@@ -185,7 +185,7 @@ Object.assign(chatroom, {
             bytes.push(buf.readUInt8(i).toString(16));
         }
         process.send({
-            bytes, filter: filter ? unparseArrowFunc(filter) : null
+            bytes, filter: typeof filter === 'function' ? filter.toString() : null
         });
         let socket;
         for (let i = 0; i < chatroom.length; i++) {
@@ -234,15 +234,16 @@ process.on('message', ({ bytes, filter }) => {
   for (let i = 0; i < bytes.length; i++) {
     buf.writeUInt8(parseInt(bytes[i], 16), i);
   }
-  chatroom.write(buf, filter ?  Function(...filter) : null);
+  chatroom.write(buf, filter ?  parseFunction(filter) : null);
 });
 
-function unparseArrowFunc(func) {
-    const str = func.toString();
-    console.log(str);
-    const args = str.match(/\(([^\)]+)\)/)[1].trim().split(', ');
-    const body = str.match(/\{([^\)]+)\}/)[0];
-    return [ ...args, body ];
+/**
+ * @param {string} func Must be of format '(..args) => { body }'
+ */
+function parseFunction(func) {
+    const args = func.match(/\(([^\)]+)\)/)[1].trim().split(', ');
+    const body = func.match(/\{([^\)]+)\}/)[0];
+    return Function(...args, body);
 }
 
 module.exports = chatroom;

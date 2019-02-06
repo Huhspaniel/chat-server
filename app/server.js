@@ -55,7 +55,7 @@ ws.listen(server, (socket) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`Worker ${process.pid} listening on http://${HOST}:${PORT}`);
+  console.log(`Listening on http://${HOST}:${PORT}`);
   process.pid
 })
 
