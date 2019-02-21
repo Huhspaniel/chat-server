@@ -55,7 +55,7 @@ ws.listen(server, (socket) => {
 })
 
 server.listen(PORT, HOST, () => {
-  console.log(`Server listening on port ${HOST}:${PORT}`);
+  console.log(`Server listening on ${HOST}:${PORT}`);
 })
 
 process.on('message', (msg) => {

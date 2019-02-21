@@ -15,5 +15,18 @@ if (process.env.NODE_ENV !== 'production') {
     console.log = timestampLog.bind(console, process.stdout);
     console.error = timestampLog.bind(console, process.stderr);
 
+    // Restart app
+    process.on('SIGHUP', () => {
+        process.once('exit', () => {
+            require("child_process").spawn(process.argv.shift(), process.argv, {
+                cwd: process.cwd(),
+                detached : true,
+                stdio: "inherit"
+            });
+        })
+        console.log('Caught SIGHUP, restarting...\n');
+        process.exit();
+    })
+
     require('./app/server');
 }
