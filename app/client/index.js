@@ -31,7 +31,7 @@ function renderHTML(html, color) {
 }
 
 const isSec = window.location.protocol === 'https:'
-const socketUrl = `${isSec ? 'wss' : 'ws'}://${window.location.hostname}:${window.location.port}`;
+const socketUrl = `${isSec ? 'wss' : 'ws'}://${window.location.hostname}:${window.location.port}/socket`;
 let socket = { readyState: 3 };
 function connectSocket() {
     const { readyState } = socket;

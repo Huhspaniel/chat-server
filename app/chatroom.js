@@ -61,7 +61,7 @@ Object.assign(chatroom, {
     connect(socket) {
         socket = addSocketTimeout(socket);
         chatroom.push(socket);
-        console.log(`Socket ${socket.info} connected`);
+        console.log(`${socket.info} connected`);
         chatroom.resetTimeout();
         socket.resetTimeout();
         socket.emit('server-message', 'Please input a username to join.');

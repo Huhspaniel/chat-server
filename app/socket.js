@@ -14,7 +14,13 @@ module.exports = function (socket, wsKey) {
         },
         info: {
             get: function () {
-                return `${socket.id}${socket.username ? ` (@${socket.username})` : ''}`;
+                const user = !!socket.username
+                    ? '@' + socket.username
+                    : 'Anonymous';
+                const info = user + (user.length > 3
+                    ? ` (${socket.id.slice(0, 23 - user.length)}..)`
+                    : ` ${Array(1 + 3 - user.length).join(' ')}(${socket.id})`);
+                return info;
             }
         },
         emit: {
@@ -89,7 +95,7 @@ module.exports = function (socket, wsKey) {
             } else if (data == 1) {
                 clearTimeout(socket.pongHandler);
             } else {
-                console.log(`Socket ${socket.info}:`, data);
+                console.log(`${socket.info}`, data);
                 stream.emit('message', data);
                 if (data.event) {
                     if (data.args instanceof Array) {
@@ -102,7 +108,7 @@ module.exports = function (socket, wsKey) {
         })
         .on('close', function (hadError) {
             if (!hadError) {
-                console.log(`Socket ${socket.info} disconnected`);
+                console.log(`${socket.info} disconnected`);
             }
         })
         .on('error', function (err) {
