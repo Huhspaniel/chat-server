@@ -1,5 +1,13 @@
+const { spawn } = require('child_process');
+
 if (process.env.NODE_ENV !== 'production') {
     require('./change-watcher');
+
+    spawn('npm run start', {
+        shell: true,
+        cwd: './app/client',
+        stdio: 'inherit',
+    });
 } else {
     const util = require('util');
 
