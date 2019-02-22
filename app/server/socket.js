@@ -1,4 +1,4 @@
-const { parseMsg, unparseMsg } = require('./message-parsing');
+const { parseMsg, serializeMsg } = require('./util');
 
 module.exports = function (socket, wsKey) {
     const stream = socket;
@@ -25,7 +25,7 @@ module.exports = function (socket, wsKey) {
         },
         emit: {
             value: function (event, ...args) {
-                return socket._write(unparseMsg.json({ event, args }));
+                return socket._write(serializeMsg.json({ event, args }));
             }
         },
         ping: {
@@ -35,17 +35,17 @@ module.exports = function (socket, wsKey) {
                     err.name = 'PingError';
                     stream.destroy(err);
                 }, 15000);
-                return socket._write(unparseMsg(0));
+                return socket._write(serializeMsg(0));
             }
         },
         pong: {
             value: function () {
-                return socket._write(unparseMsg(1));
+                return socket._write(serializeMsg(1));
             }
         },
         close: {
             value: function (event, ...args) {
-                return socket._end(unparseMsg.json({ event, args }));
+                return socket._end(serializeMsg.json({ event, args }));
             }
         },
         on: {

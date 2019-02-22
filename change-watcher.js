@@ -4,7 +4,7 @@ const { fork } = childProcess;
 
 let server;
 function forkServer() {
-    server = fork('app/server.js');
+    server = fork('./app/server');
     server.on('error', (err) => {
         console.error(err);
     }).on('exit', (code, signal) => {

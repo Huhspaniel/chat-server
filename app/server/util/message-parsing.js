@@ -1,6 +1,6 @@
 module.exports = {
     parseMsg,
-    unparseMsg
+    serializeMsg
 }
 
 // WebSocket Data Framing: https://tools.ietf.org/html/rfc6455#section-5.1
@@ -60,7 +60,7 @@ parseMsg.json = function (buffer) {
 }
 
 // WebSocket Data Framing: https://tools.ietf.org/html/rfc6455#section-5.1
-function unparseMsg(data) {
+function serializeMsg(data) {
     data = data.toString();
     let length = Buffer.byteLength(data);
     let extendedBytes, realLength = length;
@@ -82,7 +82,7 @@ function unparseMsg(data) {
     buffer.write(data, offset);
     return buffer;
 }
-unparseMsg.json = function (data) {
+serializeMsg.json = function (data) {
     const json = JSON.stringify(data);
-    return unparseMsg(json);
+    return serializeMsg(json);
 }
