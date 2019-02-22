@@ -112,5 +112,6 @@
     "xpm": "image/x-xpixmap",
     "xsl": "application/xml",
     "xwd": "image/x-xwindowdump",
-    "zip": "application/zip"
+    "zip": "application/zip",
+    "ico": "image/x-icon"
 }

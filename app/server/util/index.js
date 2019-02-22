@@ -25,5 +25,6 @@ module.exports = {
     fsExists,
     fsStatus,
     parseMsg,
-    serializeMsg
+    serializeMsg,
+    compose
 }
