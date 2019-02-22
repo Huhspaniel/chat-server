@@ -1,0 +1,5 @@
+nodejs.log
+*.sh
+**/node_modules
+
+.ec2ignore
