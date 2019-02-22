@@ -15,7 +15,6 @@ if (process.env.NODE_ENV !== 'production') {
     console.log = timestampLog.bind(console, process.stdout);
     console.error = timestampLog.bind(console, process.stderr);
 
-    // Restart app
     process.on('SIGHUP', () => {
         process.once('exit', () => {
             require("child_process").spawn(process.argv.shift(), process.argv, {
@@ -24,9 +23,15 @@ if (process.env.NODE_ENV !== 'production') {
                 stdio: "inherit"
             });
         })
-        console.log('Caught SIGHUP, restarting...\n');
+        console.log('Caught SIGHUP, restarting...');
         process.exit();
+    }).on('SIGINT', () => {
+        console.log('Caught SIGINT, exiting...');
+        process.exit();
+    }).on('exit', (code) => {
+        console.log(`Process exiting with code ${code}`);
     })
 
+    console.log(`Starting server...`);
     require('./app/server');
 }
