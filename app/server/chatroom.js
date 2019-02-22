@@ -1,4 +1,4 @@
-const { unparseMsg } = require('./message-parsing');
+const { serializeMsg } = require('./util');
 const cmd = require('./commands');
 const { defineTimeout } = require('./timeout');
 
@@ -179,7 +179,7 @@ Object.assign(chatroom, {
         if (typeof event === 'object') {
             ({ event, filter, args } = event);
         }
-        const data = unparseMsg.json({ event, args });
+        const data = serializeMsg.json({ event, args });
         let socket;
         for (let i = 0; i < chatroom.length; i++) {
             socket = chatroom[i];
@@ -194,7 +194,7 @@ Object.assign(chatroom, {
         console.log('Disconnecting all sockets');
         event = event || 'server-message';
         args = args[0] ? args : ['Closing all lingering connections...'];
-        message = unparseMsg.json({ event, args });
+        message = serializeMsg.json({ event, args });
         for (let i = 0; i < chatroom.length; i++) {
             const socket = chatroom[i];
             if (!socket._destroyed) {

@@ -1,14 +1,12 @@
 const crypto = require('crypto');
 const configSocket = require('./socket');
-const { parseMsg, unparseMsg } = require('./message-parsing');
+const { parseMsg, serializeMsg } = require('./util');
 
-function generateAcceptKey(key) {
-    return crypto.createHash('sha1')
-        .update(key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11', 'binary')
-        .digest('base64');
-}
+const generateAcceptKey = key => crypto.createHash('sha1')
+    .update(key + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11', 'binary')
+    .digest('base64');
 
-function listen(server, cb) {
+const listen = (server, cb) => {
     server.on('upgrade', (req, socket) => {
         const { headers } = req;
         if (headers.upgrade !== 'websocket') {
@@ -30,5 +28,5 @@ function listen(server, cb) {
 }
 
 module.exports = {
-    parseMsg, unparseMsg, listen
+    parseMsg, serializeMsg, listen
 }

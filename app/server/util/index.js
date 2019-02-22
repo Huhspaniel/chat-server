@@ -1,6 +1,7 @@
 const fs = require('fs');
 const { join } = require('path');
 const { compose, replace, curry } = require('ramda');
+const { parseMsg, serializeMsg } = require('./message-parsing');
 
 const sanitize = compose(replace(/\/*$/, ''), replace(/\/\.+/g, ''));
 const absolute = curry((dir, path) => join(dir, path));
@@ -22,5 +23,7 @@ module.exports = {
     absolute,
     staticPath,
     fsExists,
-    fsStatus
+    fsStatus,
+    parseMsg,
+    serializeMsg
 }
