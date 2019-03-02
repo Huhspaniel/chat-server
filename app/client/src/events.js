@@ -5,7 +5,8 @@ function parseMessage(username, { event, args }) {
             parse = (tag, text) => ({
                 tag: `@${tag}: `,
                 text,
-                tagColor: tag === username ? 'me' : 'user'
+                tagColor: tag === username ? 'me' : 'user',
+                username: tag
             })
             break;
         }
@@ -29,7 +30,8 @@ function parseMessage(username, { event, args }) {
             parse = (tag) => ({
                 tag: `@${tag} `,
                 text: 'has joined the chatroom',
-                textColor: tag === username ? 'me' : 'user'
+                textColor: tag === username ? 'me' : 'user',
+                username: tag
             })
             break;
         }
@@ -38,7 +40,8 @@ function parseMessage(username, { event, args }) {
                 tag: `@${tag} `,
                 text: 'has left the chatroom',
                 tagColor: tag === username ? 'me' : '',
-                textColor: 'logout'
+                textColor: 'logout',
+                username: tag
             })
             break;
         }
@@ -53,7 +56,8 @@ function parseMessage(username, { event, args }) {
                 return {
                     tag: `${from} -> ${to}: `,
                     text,
-                    tagColor: 'dm'
+                    tagColor: 'dm',
+                    username: from
                 }
             }
             break;
