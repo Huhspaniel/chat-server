@@ -31,6 +31,18 @@ function parseMessage(username, { event, args }) {
             );
             break;
         }
+        case 'dm': {
+            parse = (from, to, text) => {
+                from = from === username ? 'You' : `@${from}`;
+                to = to === username ? 'You': `@${to}`;
+                return {
+                    tag: `${from} -> ${to}: `,
+                    text,
+                    tagColor: 'dm'
+                }
+            }
+            break;
+        }
         default: {
             return null;
         }

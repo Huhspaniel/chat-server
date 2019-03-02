@@ -2,7 +2,6 @@ import React from 'react';
 import { map, compose, identity, both, ifElse, is } from 'ramda';
 import { parseMessage } from './events';
 import uuidv4 from 'uuid/v4'
-import { Server } from 'tls';
 
 const Message = ({ tag, text, tagColor = '', textColor = '' }) => (
     <div key={uuidv4()} className={`message ${textColor}`}>
