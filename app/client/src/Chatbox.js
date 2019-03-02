@@ -3,36 +3,43 @@ import { map, compose } from 'ramda';
 import uuidv1 from 'uuid/v1';
 import events from './events';
 
-const parse = ({ event, args }) => events[event](...args);
+const parse = (state, { event, args }) => events[event](state, ...args);
 
 const addId = obj => Object.assign({ id: uuidv1() }, obj);
 
-const Message = ({ tag, text, id }) => (
-    <div key={id} className='message'>
-        {tag ? <span>{tag}</span> : ''}{text}
+const Message = ({ tag, text, tagColor = '', textColor = '', id }) => (
+    <div key={id} className={`message ${textColor}`}>
+        {tag ? <span className={tagColor}>{tag}</span> : ''}{text}
     </div>
 )
 
 const msgToJsx = compose(Message, addId, parse);
 
-const Chatbox = ({ messages, login, chat, loggedIn }) => (
-    <div className='chatbox'>
+const Chatbox = ({ sendLogin, sendChat, onChange, state, state: { chat, messages, loggedIn } }) => (
+    <div className='chat-box'>
+        <button className="reconnect fas fa-sync-alt"></button>
         <div className='messages'>
-            {map(msgToJsx, messages)}
+            {map(msg => msgToJsx(state, msg), messages)}
         </div>
-        <form action="" onSubmit={e => {
+        <form className="user-input" action="/" onSubmit={e => {
             e.preventDefault();
-            const input = e.target[0].value.trim();
-            e.target[0].value = '';
-            if (input) {
+            if (chat) {
                 if (loggedIn) {
-                    chat(input);
+                    sendChat(chat);
                 } else {
-                    login(input);
+                    sendLogin(chat);
                 }
             }
         }}>
-            <input type="text" /><input type="submit" />
+            <span className="input-carrot">> </span>
+            <input type="text"
+                onChange={onChange}
+                value={chat}
+                name="chat"
+                placeholder="Input a username"
+                autoComplete='off'
+            />
+            <input type="submit" value="Send" />
         </form>
     </div>
 )

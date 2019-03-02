@@ -23,7 +23,7 @@ forkServer();
 
 let fsWait = false;
 fs.watch('app', { recursive: true }, (type, filename) => {
-    if (fsWait) return;
+    if (fsWait || ['node_modules'].includes(filename)) return;
     fsWait = setTimeout(() => {
         fsWait = false;
     }, 2000);

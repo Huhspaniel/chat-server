@@ -1,33 +1,163 @@
 .App {
-  text-align: center;
-}
+  margin: 0;
+  padding: 50px;
+  box-sizing: border-box;
+  height: 100vh;
+  width: 100vw;
+  background-color: #101010;
+  font-family: 'Krub', sans-serif;
+  font-size: 17px;
 
-.App-logo {
-  animation: App-logo-spin infinite 20s linear;
-  height: 40vmin;
-  pointer-events: none;
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  align-items: center;
+}
+.chat-box {
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  max-width: 800px;
+  --box-color: rgb(242, 251, 255);
+  box-shadow: 0 0 5px var(--box-color);
+  background-color: var(--box-color);
+  border-radius: 2px;
+}
+button.reconnect {
+  position: absolute;
+  background-color: transparent;
+  color: rgba(0, 0, 0, 1);
+  text-shadow: 0 0 1px black;
+  border: none;
+  top: 0;
+  right: 0;
+  padding: 5px;
+  margin: 6px;
+  font-size: 23px;
+  transition: transform .3s ease-out;
+  transition: font-size padding .2s ease-in-out;
+  border-radius: 50%;
+}
+button.reconnect:hover {
+  cursor: pointer;
+  transform: rotate(360deg);
+}
+button.reconnect:active {
+  font-size: 26px;
+  padding: 3px;
+}
+button.reconnect:focus {
+  outline: none;
 }
 
-.App-link {
-  color: #61dafb;
+.messages {
+  display: flex;
+  flex-direction: column-reverse;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+  word-break: break-word;
+}
+.message {
+  padding: 8px;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, .1);
+}
+.message:nth-last-child(even) {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+.message span {
+  font-weight: bold;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+/* colors */
+.me {
+  color: rgb(0, 187, 153);
+}
+.blue {
+  color: rgb(0, 60, 255);
+}
+.gray {
+  color: rgb(85, 85, 85);
+}
+.orange {
+  color: rgb(223, 104, 0);
+}
+.dm {
+  color: rgb(255, 0, 140);
+}
+.user {
+  color: rgb(164, 91, 228);
+}
+.logout {
+  color: rgb(145, 38, 19)
+}
+.error {
+  color: rgb(218, 43, 43);
+}
+
+.user-input {
+  background-color: rgba(16, 16, 16, 0.7);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  color: rgba(255, 255, 255, 0.75);
+  border-top-left-radius: 0px;
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 2px;
+  border-bottom-left-radius: 2px;
+}
+.user-input span, .user-input input {
+  padding: 6px;
+  margin: 0;
+  border: none;
+  background-color: transparent;
+  font-size: inherit;
+  font-family: inherit;
+  color: inherit;
+}
+.user-input span {
+  padding-right: 0;
+  display: flex;
+  align-items: center;
+  border-bottom-left-radius: 2px;
+}
+.user-input input:focus {
+  outline: none;
+}
+.user-input input::placeholder {
+  color: rgba(255, 255, 255, 0.2);
+}
+.user-input input[type="submit"] {
+  box-sizing: border-box;
+  font-size: inherit;
+  color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(0, 0, 0, 0.4);
+  padding: 6px 15px;
+
+  /* overriding user agent stylesheets on mobile */
+  -webkit-appearance: none;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 2px;
+  border-bottom-left-radius: 0;
+  margin: 0;
+}
+.user-input input[type="submit"]:active {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+@media only screen and (max-width: 750px) {
+  body {
+      padding: 0;
   }
-  to {
-    transform: rotate(360deg);
+  button.reconnect {
+      position: fixed;
+      z-index: 1;
+  }
+  .chat-box {
+      max-width: none;
+  }
+  .user-input {
+      font-size: 18px;
   }
 }

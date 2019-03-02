@@ -7,14 +7,14 @@ class App extends Component {
   state = {
     messages: [],
     loggedIn: false,
-    username: null
+    username: null,
+    chat: ''
   }
-  constructor(...args) {
-    super(...args);
+  componentWillMount() {
     socket.on('_event', message => {
       console.log(message);
       this.setState({
-        messages: this.state.messages.concat(message)
+        messages: Array(message).concat(this.state.messages)
       })
     }).on('login', args => {
       if (args[0] === this.state.username) {
@@ -22,21 +22,37 @@ class App extends Component {
           loggedIn: true
         })
       }
+    }).on('logout', args => {
+      if (args[0] === this.state.username) {
+        this.setState({
+          loggedIn: false,
+          username: null
+        })
+      }
     })
   }
 
-  login = (username) => {
+  sendLogin = (username) => {
     socket.send('login', username);
-    this.setState({ loggedIn: true })
+    this.setState({ username, chat: '' })
   }
-  chat = (chat) => {
+  sendChat = (chat) => {
     socket.send('chat', chat);
+    this.setState({ chat: '' })
+  }
+  onChange = e => {
+    this.setState({ [e.target.name]: e.target.value });
   }
 
   render() {
     return (
       <div className="App">
-        {Chatbox({ ...this.state, chat: this.chat, login: this.login })}
+        {Chatbox({
+          sendChat: this.sendChat,
+          sendLogin: this.sendLogin,
+          onChange: this.onChange,
+          state: this.state
+        })}
       </div>
     );
   }
