@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
 import './App.css';
 import Chatbox from './Chatbox';
-import { getSocket } from './socket';
+import { Socket } from './socket';
+import { prepend } from 'ramda';
+import { parseMessage } from './events';
 
 let socket;
 
@@ -13,13 +15,15 @@ class App extends Component {
     input: '',
     connected: false
   }
+  addMessage = msg => prepend(parseMessage(this.state.username, msg), this.state.messages);
   connectSocket() {
-    socket = getSocket();
+    socket = Socket();
     socket.on('message', message => {
       console.log(message);
-      this.setState({
-        messages: Array(message).concat(this.state.messages)
-      })
+      let update = {
+        messages: this.addMessage(message)
+      };
+      this.setState(update);
     }).on('login', args => {
       if (args[0] === this.state.username) {
         this.setState({
@@ -34,19 +38,19 @@ class App extends Component {
       }
     }).on('_close', e => {
       this.setState({
-        messages: Array({
+        messages: this.addMessage({
           event: 'notice',
           args: ['Disconnected from server.']
-        }).concat(this.state.messages),
+        }),
         loggedIn: false,
         connected: false
       })
     }).on('_open', e => {
       this.setState({
-        messages: Array({
+        messages: this.addMessage({
           event: 'notice',
-          args: ['Connection to server established.']
-        }).concat(this.state.messages),
+          args: ['Connection to server established.'],
+        }),
         connected: true
       })
     })
@@ -55,10 +59,10 @@ class App extends Component {
   send = () => {
     if (!this.state.connected) {
       return this.setState({
-        messages: Array({
+        messages: this.addMessage({
           event: 'error',
           args: ['Not connected to server.']
-        }).concat(this.state.messages)
+        })
       });
     }
     let update = { input: '' };
@@ -76,13 +80,19 @@ class App extends Component {
     this.setState({ [e.target.name]: e.target.value });
   }
   reconnect = () => {
-    socket.close();
-    socket.once('_close', () => {
-      this.connectSocket();
+    const connect = () => {
       this.setState({
-        input: ''
-      })
-    })
+        input: '',
+        messages: []
+      });
+      this.connectSocket();
+    }
+    if (socket.closed()) {
+      connect();
+    } else {
+      socket.close();
+      socket.once('_close', connect)
+    }
   }
 
   render() {

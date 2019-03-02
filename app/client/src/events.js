@@ -43,9 +43,7 @@ function parseMessage(username, { event, args }) {
             break;
         }
         case 'info': {
-            parse = (html) => (
-                html
-            );
+            parse = (html) => html;
             break;
         }
         case 'dm': {

@@ -1,6 +1,5 @@
 import React from 'react';
-import { map, compose, identity, both, ifElse, is } from 'ramda';
-import { parseMessage } from './events';
+import { map, identity, both, ifElse, is } from 'ramda';
 import uuidv4 from 'uuid/v4'
 
 const Message = ({ tag, text, tagColor = '', textColor = '' }) => (
@@ -12,15 +11,13 @@ const ServerHtml = html => (
     <div key={uuidv4()} className='message blue' dangerouslySetInnerHTML={{__html: html}} />
 );
 
-const handleMessage = both(identity, ifElse(is(String), ServerHtml, Message))
-
-const msgToJsx = compose(handleMessage, parseMessage);
+const msgToJsx = both(identity, ifElse(is(String), ServerHtml, Message));
 
 const Chatbox = ({ send, reconnect, onChange, state: { username, input, messages, loggedIn, connected } }) => (
     <div className='chat-box'>
         <button className='reconnect fas fa-sync-alt' onClick={reconnect}></button>
         <div className='messages'>
-            {map(msg => msgToJsx(username, msg), messages)}
+            {map(msgToJsx, messages)}
         </div>
         <form className='user-input' action='/' onSubmit={e => {
             e.preventDefault();

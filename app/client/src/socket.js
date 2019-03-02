@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import { } from 'ramda';
 
-function getSocket() {
+function Socket() {
     const emitter = new EventEmitter();
     emitter.on('error', () => {});
     
@@ -30,7 +30,8 @@ function getSocket() {
     socket.on = emitter.on.bind(emitter);
     socket.once = emitter.once.bind(emitter);
     socket.close = ws.close.bind(ws);
+    socket.closed = () => ws.readyState === ws.CLOSED || ws.readyState === ws.CLOSING;
     return socket;
 }
 
-export { getSocket };
+export { Socket };
