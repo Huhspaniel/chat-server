@@ -1,14 +1,21 @@
 import React from 'react';
-import { map, compose, identity, both } from 'ramda';
+import { map, compose, identity, both, ifElse, is } from 'ramda';
 import { parseMessage } from './events';
+import uuidv4 from 'uuid/v4'
+import { Server } from 'tls';
 
-const Message = ({ tag, text, tagColor = '', textColor = '', id }) => (
-    <div key={id} className={`message ${textColor}`}>
+const Message = ({ tag, text, tagColor = '', textColor = '' }) => (
+    <div key={uuidv4()} className={`message ${textColor}`}>
         {tag ? <span className={tagColor}>{tag}</span> : ''}{text}
     </div>
 )
+const ServerHtml = html => (
+    <div key={uuidv4()} className='message blue' dangerouslySetInnerHTML={{__html: html}} />
+);
 
-const msgToJsx = compose(both(identity, Message), parseMessage);
+const handleMessage = both(identity, ifElse(is(String), ServerHtml, Message))
+
+const msgToJsx = compose(handleMessage, parseMessage);
 
 const Chatbox = ({ sendLogin, sendChat, onChange, state: { username, chat, messages, loggedIn } }) => (
     <div className='chat-box'>

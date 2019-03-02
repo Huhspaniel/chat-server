@@ -1,5 +1,3 @@
-import uuidv4 from 'uuid/v4';
-
 function parseMessage(username, { event, args }) {
     let parse;
     switch (event) {
@@ -27,12 +25,17 @@ function parseMessage(username, { event, args }) {
             })
             break;
         }
+        case 'info': {
+            parse = (html) => (
+                html
+            );
+            break;
+        }
         default: {
             return null;
         }
     }
     const message = parse(...args);
-    message.id = uuidv4();
     return message;
 }
 

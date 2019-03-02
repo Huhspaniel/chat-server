@@ -95,8 +95,12 @@ Object.assign(chatroom, {
                     socket.emit('error', `Type ${typeof msg} invalid for chat message. Must be 'string'`)
                 } else {
                     msg = msg.trim().replace('/[\s]{2,}/', ' ');
+
                     if (msg.length > 255) {
-                        socket.emit('error', 'Chat message cannot exceed 255 characters');
+                        socket.emit('error', 'Input cannot exceed 255 characters');
+                    } else if (msg.charAt(0) === '/') {
+                        const cmdArgs = msg.slice(1).split(' ');
+                        cmd(...cmdArgs)(socket, chatroom);
                     } else {
                         chatroom.emit({
                             event: 'chat',
@@ -106,13 +110,6 @@ Object.assign(chatroom, {
                             }
                         });
                     }
-                }
-            })
-            .on('cmd', function (...args) {
-                if (!socket.loggedIn) {
-                    socket.emit('server-message', 'Please input a username to join');
-                } else {
-                    cmd(...args)(socket, chatroom);
                 }
             })
     },

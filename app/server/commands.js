@@ -6,7 +6,8 @@ const cmdDesc = {
     help: '/help -- See list of available commands'
 }
 const commands = {
-    dm: (username, msg) => (socket, chatroom) => {
+    dm: (username, ...msg) => (socket, chatroom) => {
+        msg = msg.join(' ');
         if (!username) {
             socket.emit(
                 'info',
