@@ -120,6 +120,7 @@ button.reconnect:focus {
   display: flex;
   align-items: center;
   border-bottom-left-radius: 2px;
+  font-weight: bold;
 }
 .user-input input:focus {
   outline: none;

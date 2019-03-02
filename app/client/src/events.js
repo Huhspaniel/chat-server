@@ -17,11 +17,28 @@ function parseMessage(username, { event, args }) {
             })
             break;
         }
+        case 'server-warning': {
+            parse = (text) => ({
+                tag: 'WARNING: ',
+                text,
+                textColor: 'error'
+            })
+            break;
+        }
         case 'login': {
             parse = (tag) => ({
                 tag: `@${tag} `,
                 text: 'has joined the chatroom',
                 textColor: tag === username ? 'me' : 'user'
+            })
+            break;
+        }
+        case 'logout': {
+            parse = (tag) => ({
+                tag: `@${tag} `,
+                text: 'has left the chatroom',
+                tagColor: tag === username ? 'me' : '',
+                textColor: 'logout'
             })
             break;
         }

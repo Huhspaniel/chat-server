@@ -16,31 +16,27 @@ const handleMessage = both(identity, ifElse(is(String), ServerHtml, Message))
 
 const msgToJsx = compose(handleMessage, parseMessage);
 
-const Chatbox = ({ sendLogin, sendChat, onChange, state: { username, chat, messages, loggedIn } }) => (
+const Chatbox = ({ send, reconnect, onChange, state: { username, input, messages, loggedIn, connected } }) => (
     <div className='chat-box'>
-        <button className="reconnect fas fa-sync-alt"></button>
+        <button className='reconnect fas fa-sync-alt' onClick={reconnect}></button>
         <div className='messages'>
             {map(msg => msgToJsx(username, msg), messages)}
         </div>
-        <form className="user-input" action="/" onSubmit={e => {
+        <form className='user-input' action='/' onSubmit={e => {
             e.preventDefault();
-            if (chat) {
-                if (loggedIn) {
-                    sendChat(chat);
-                } else {
-                    sendLogin(chat);
-                }
+            if (input) {
+                send();
             }
         }}>
-            <span className="input-carrot">> </span>
-            <input type="text"
+            <span className='input-carrot me'>{loggedIn ? `@${username} ` : ''}> </span>
+            <input type='text'
                 onChange={onChange}
-                value={chat}
-                name="chat"
-                placeholder="Input a username"
+                value={input}
+                name='input'
+                placeholder={!loggedIn && connected ? 'Input a username' : ''}
                 autoComplete='off'
             />
-            <input type="submit" value="Send" />
+            <input type='submit' value='Send' />
         </form>
     </div>
 )
