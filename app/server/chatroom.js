@@ -19,7 +19,7 @@ const chatroomTimer = setTimer(80, {
             })
         }
     }
-}, (id) => {
+}, () => {
     chatroom.emit({
         event: 'server-message',
         args: ['Connection timed out due to inactivity.'],
