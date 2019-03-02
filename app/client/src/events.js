@@ -43,6 +43,22 @@ function parseMessage(username, { event, args }) {
             }
             break;
         }
+        case 'notice': {
+            parse = (text) => ({
+                tag: 'NOTICE: ',
+                text,
+                textColor: 'orange'
+            })
+            break;
+        }
+        case 'error': {
+            parse = (text) => ({
+                tag: 'ERROR: ',
+                text,
+                textColor: 'error'
+            })
+            break;
+        }
         default: {
             return null;
         }

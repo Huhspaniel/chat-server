@@ -29,6 +29,20 @@ class App extends Component {
           username: null
         })
       }
+    }).on('_close', e => {
+      this.setState({
+        messages: Array({
+          event: 'notice',
+          args: ['Disconnected from server.']
+        }).concat(this.state.messages)
+      })
+    }).on('_open', e => {
+      this.setState({
+        messages: Array({
+          event: 'notice',
+          args: ['Connection to server established.']
+        })
+      })
     })
   }
 
