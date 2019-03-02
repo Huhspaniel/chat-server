@@ -1,11 +1,6 @@
 import React from 'react';
-import { map, compose } from 'ramda';
-import uuidv1 from 'uuid/v1';
-import events from './events';
-
-const parse = (state, { event, args }) => events[event](state, ...args);
-
-const addId = obj => Object.assign({ id: uuidv1() }, obj);
+import { map, compose, identity, both } from 'ramda';
+import { parseMessage } from './events';
 
 const Message = ({ tag, text, tagColor = '', textColor = '', id }) => (
     <div key={id} className={`message ${textColor}`}>
@@ -13,13 +8,13 @@ const Message = ({ tag, text, tagColor = '', textColor = '', id }) => (
     </div>
 )
 
-const msgToJsx = compose(Message, addId, parse);
+const msgToJsx = compose(both(identity, Message), parseMessage);
 
-const Chatbox = ({ sendLogin, sendChat, onChange, state, state: { chat, messages, loggedIn } }) => (
+const Chatbox = ({ sendLogin, sendChat, onChange, state: { username, chat, messages, loggedIn } }) => (
     <div className='chat-box'>
         <button className="reconnect fas fa-sync-alt"></button>
         <div className='messages'>
-            {map(msg => msgToJsx(state, msg), messages)}
+            {map(msg => msgToJsx(username, msg), messages)}
         </div>
         <form className="user-input" action="/" onSubmit={e => {
             e.preventDefault();

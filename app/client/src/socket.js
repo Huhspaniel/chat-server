@@ -1,5 +1,4 @@
 import { EventEmitter } from 'events';
-import events from './events';
 
 const emitter = new EventEmitter();
 
@@ -9,10 +8,8 @@ const ws = new WebSocket(url);
 ws.onmessage = e => {
     const data = JSON.parse(e.data);
     emitter.emit('_data', data);
-    if (events.hasOwnProperty(data.event)) {
-        emitter.emit('_event', data);
-        emitter.emit(data.event, data.args)
-    }
+    emitter.emit('_event', data);
+    emitter.emit(data.event, data.args)
 }
 const socket = {};
 const send = (event, ...args) => {
