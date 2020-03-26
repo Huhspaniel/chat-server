@@ -14,7 +14,7 @@ const errorHandler = (req, res, err) => {
 
 const serveStatic = (root, _next) => {
     const getPathFromUrl = staticPath(root);
-    return async (req, res, next = _next || (() => {}), error = errorHandler) => {
+    return async (req, res, next = _next || (() => { }), error = errorHandler) => {
         const path = getPathFromUrl(req.url);
         try {
             const { exists, ext, stream } = await pathStatus(path);
@@ -22,7 +22,9 @@ const serveStatic = (root, _next) => {
                 next(req, res);
             } else {
                 res.writeHead(200, {
-                    'content-type': MIME[ext]
+                    'content-type': MIME[ext],
+                    'cache-control': 'no-store',
+                    'cache-control': 'no-cache, no-store, must-revalidate'
                 });
                 stream.pipe(res);
             }
