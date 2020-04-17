@@ -14,6 +14,7 @@ body {
 }
 .chat-box {
     position: relative;
+    overflow: hidden;
     display: grid;
     grid-template-rows: 1fr auto;
     box-sizing: border-box;
@@ -23,7 +24,7 @@ body {
     --box-color: rgb(242, 251, 255);
     box-shadow: 0 0 5px var(--box-color);
     background-color: var(--box-color);
-    border-radius: 2px;
+    border-radius: 5px;
 }
 button.reconnect {
     position: absolute;
@@ -36,8 +37,7 @@ button.reconnect {
     padding: 5px;
     margin: 6px;
     font-size: 23px;
-    transition: transform .3s ease-out;
-    transition: font-size padding .2s ease-in-out;
+    transition: transform .3s ease-out, padding .05s ease-in-out, font-size .05s ease-in-out;
     border-radius: 50%;
 }
 button.reconnect:hover {
@@ -101,10 +101,6 @@ button.reconnect:focus {
     display: grid;
     grid-template-columns: auto 1fr auto;
     color: rgba(255, 255, 255, 0.75);
-    border-top-left-radius: 0px;
-    border-top-right-radius: 0px;
-    border-bottom-right-radius: 2px;
-    border-bottom-left-radius: 2px;
 }
 .user-input span, .user-input input {
     padding: 6px;
@@ -119,7 +115,6 @@ button.reconnect:focus {
     padding-right: 0;
     display: flex;
     align-items: center;
-    border-bottom-left-radius: 2px;
 }
 .user-input input:focus {
     outline: none;
@@ -136,10 +131,7 @@ button.reconnect:focus {
 
     /* overriding user agent stylesheets on mobile */
     -webkit-appearance: none;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 2px;
-    border-bottom-left-radius: 0;
+    border-radius: 0px;
     margin: 0;
 }
 .user-input input[type="submit"]:active {
@@ -151,13 +143,39 @@ button.reconnect:focus {
         padding: 0;
     }
     button.reconnect {
-        position: fixed;
+	position: relative;
+	font-size: 32px;
+	padding: 20px;
+	margin: 0;
+	width: 100%;
         z-index: 1;
+	border-radius: 0px;
+    }
+    button.reconnect:hover {
+    	transform: none;
+    }
+    button.reconnect:active {
+    	font-size: 30px;
+	padding: 21px;
     }
     .chat-box {
+	width: 100vw;
+	height: 100vh;
         max-width: none;
+	border-radius: 0px;
+	grid-template-rows: 1fr auto auto;
     }
     .user-input {
         font-size: 18px;
+    }
+    .mobile-menu {
+        display: flex;
+	justify-content: center;
+	background-color: #f0f0f0;
+	box-shadow: 0 0 3px #000000;
+	transition: background-color .05s ease-in-out;
+    }
+    .mobile-menu:active {
+    	background-color: #e0e0e0;
     }
 }
