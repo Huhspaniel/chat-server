@@ -67,7 +67,7 @@ pipeline {
           // updateGitlabCommitStatus name: 'deploy-master', state: 'running'
           try {
             // updateGitlabCommitStatus name: 'deploy-master', state: 'running'
-            sh 'rsync -avh ./ ~/applications/chat-server --delete'
+            sh 'rsync -avh ./ /home/ubuntu/applications/chat-server --delete'
           } catch (ex) {
             // updateGitlabCommitStatus name: 'deploy-master', state: 'failed'
             throw ex
