@@ -19,7 +19,11 @@ function renderMessage(tag, msg, colors) {
     }
     message.append(msg);
     messages.prepend(message);
-    if (messages.scrollHeight - messages.scrollTop > messages.offsetHeight) {
+    if (scrollTop === 0) {
+        messages.scrollTop = -1;
+        messages.scrollTop = 0;
+    }
+    else if (messages.scrollHeight - messages.scrollTop > messages.offsetHeight) {
         messages.scrollTop = scrollTop;
     }
 }
