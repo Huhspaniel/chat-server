@@ -32,34 +32,27 @@ function renderHTML(html, color) {
 
 const isSec = window.location.protocol === 'https:'
 const socketUrl = `${isSec ? 'wss' : 'ws'}://${window.location.hostname}:${window.location.port}/socket`;
-let socket = { readyState: 3 };
+/** @type {WebSocket} */
+let socket;
 function connectSocket() {
-    const { readyState } = socket;
+    const readyState = socket ? socket.readyState : WebSocket.CLOSED;
     switch (readyState) {
-        case 2: {
-            break;
-        }
-        case 3: {
-            break;
-        }
-        default: {
-            socket.close();
-        }
+        case WebSocket.CONNECTING: return;
+        case WebSocket.CLOSED: break;
+        case WebSocket.OPEN: socket.close();
     }
     socket = new WebSocket(socketUrl);
     socket.onopen = event => {
-        console.log('Connection to server established: ', event);
         renderMessage('NOTICE:', 'Connection to server established', { msgColor: 'orange' });
     };
     socket.onclose = event => {
         loggedIn = false;
         form[0].placeholder = 'Input a username';
-        console.log('Disconnected from server: ', event);
         renderMessage('NOTICE:', 'Disconnected from server', { msgColor: 'orange' })
     }
     socket.onerror = event => {
-        console.log('WebSocket error event: ', event);
-        renderMessage('ERROR:', 'Caught error (in console). Try reconnecting', { msgColor: 'error' });
+        console.log('WebSocket error: ', event);
+        renderMessage('ERROR:', 'Oops! Something went wrong.', { msgColor: 'error' });
     };
     socket.onmessage = event => {
         const data = JSON.parse(event.data);
@@ -68,7 +61,6 @@ function connectSocket() {
         } else if (data == 1) {
             return;
         }
-        console.log('Server: ', data);
         switch (data.event) {
             case 'chat': {
                 const [username, chat] = data.args;
@@ -146,6 +138,7 @@ connectSocket();
 
 reconnectBtn.addEventListener('click', e => {
     e.preventDefault();
+    if (socket.readyState === WebSocket.CONNECTING) return;
     form[0].value = '';
     messages.innerHTML = '';
     connectSocket();
