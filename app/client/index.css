@@ -42,7 +42,7 @@ body {
     box-sizing: border-box;
     /* height: 100vh;
     width: 100vw; */
-    background-color: #404040;
+    background-color: #252525;
     font-family: 'Krub', sans-serif;
     font-size: 17px;
     color: var(--font-color);
@@ -69,7 +69,7 @@ body {
     width: 100%;
     height: 100%;
     max-width: 800px;
-    box-shadow: 0 0 5px var(--box-color);
+    box-shadow: 0 0 5px black;
     background-color: var(--box-color);
     border-radius: 5px;
 }
@@ -97,7 +97,7 @@ button.reconnect {
         padding var(--out-speed) ease-in-out,
         font-size var(--out-speed) ease-in-out,
         background-color var(--out-speed) ease-in-out,
-        box-shadow var(--out-speed) ease-in-out,
+        box-shadow var(--out-speed) ease-in-out;
 }
 
 button.reconnect:hover {
@@ -108,7 +108,7 @@ button.reconnect:hover {
         padding var(--out-speed) ease-in-out,
         font-size var(--out-speed) ease-in-out,
         background-color var(--out-speed) ease-in-out,
-        box-shadow var(--out-speed) ease-in-out,
+        box-shadow var(--out-speed) ease-in-out;
 }
 
 button.reconnect:active {
