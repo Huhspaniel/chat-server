@@ -3,6 +3,17 @@ const form = document.querySelector('.user-input');
 const reconnectBtn = document.querySelector('button.reconnect');
 let loggedIn = false;
 let myUsername = null;
+const body = document.querySelector('body');
+
+// bodyScrollLock.disableBodyScroll(document.querySelector('.chat-box'));
+
+document.querySelector('.dark-mode-checkbox').addEventListener('change', ({ target }) => {
+    if (target.checked) {
+        body.classList.add('dark-mode');
+    } else {
+        body.classList.remove('dark-mode');
+    }
+})
 
 function renderMessage(tag, msg, colors) {
     if (typeof colors === 'object') {
@@ -19,11 +30,8 @@ function renderMessage(tag, msg, colors) {
     }
     message.append(msg);
     messages.prepend(message);
-    if (scrollTop === 0) {
-        messages.scrollTop = -1;
-        messages.scrollTop = 0;
-    }
-    else if (messages.scrollHeight - messages.scrollTop > messages.offsetHeight) {
+    if (messages.scrollHeight - messages.scrollTop > messages.offsetHeight) {
+        messages.scrollTop = scrollTop - 1;
         messages.scrollTop = scrollTop;
     }
 }
