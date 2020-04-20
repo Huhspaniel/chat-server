@@ -297,7 +297,7 @@ button.reconnect:focus {
     button.reconnect {
         color: black;
         position: relative;
-        text-shadow: 0 0 1px black;
+        text-shadow: none;
         font-size: 32px;
         padding: 20px;
         width: auto;
