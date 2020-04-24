@@ -18,7 +18,6 @@ const createRes = compose(createHandshake, createAcceptKey);
 
 const listen = (server, cb) => {
     server.on('upgrade', async (req, socket) => {
-        await new Promise(resolve => setTimeout(() => resolve(), 500));
         const { headers } = req;
         if (headers.upgrade !== 'websocket') {
             socket.end('HTTP/1.1 400 Bad Request');

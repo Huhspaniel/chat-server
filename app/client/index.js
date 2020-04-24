@@ -3,6 +3,17 @@ const form = document.querySelector('.user-input');
 const reconnectBtn = document.querySelector('button.reconnect');
 let loggedIn = false;
 let myUsername = null;
+const body = document.querySelector('body');
+
+// bodyScrollLock.disableBodyScroll(document.querySelector('.chat-box'));
+
+document.querySelector('.dark-mode-checkbox').addEventListener('change', ({ target }) => {
+    if (target.checked) {
+        body.classList.add('dark-mode');
+    } else {
+        body.classList.remove('dark-mode');
+    }
+})
 
 function renderMessage(tag, msg, colors) {
     if (typeof colors === 'object') {
@@ -20,6 +31,7 @@ function renderMessage(tag, msg, colors) {
     message.append(msg);
     messages.prepend(message);
     if (messages.scrollHeight - messages.scrollTop > messages.offsetHeight) {
+        messages.scrollTop = scrollTop - 1;
         messages.scrollTop = scrollTop;
     }
 }
@@ -34,21 +46,24 @@ const isSec = window.location.protocol === 'https:'
 const socketUrl = `${isSec ? 'wss' : 'ws'}://${window.location.hostname}:${window.location.port}/socket`;
 /** @type {WebSocket} */
 let socket;
-function connectSocket() {
+async function connectSocket() {
     const readyState = socket ? socket.readyState : WebSocket.CLOSED;
     switch (readyState) {
         case WebSocket.CONNECTING: return;
-        case WebSocket.CLOSED: break;
-        case WebSocket.OPEN: socket.close();
+        case WebSocket.OPEN: return;
     }
+    renderMessage(null, 'Connecting...', { msgColor: 'gray' });
     socket = new WebSocket(socketUrl);
-    socket.onopen = event => {
-        renderMessage('NOTICE:', 'Connection to server established', { msgColor: 'orange' });
-    };
+    const open = new Promise(resolve => {
+        socket.onopen = event => {
+            renderMessage(null, 'Connection to server established', { msgColor: 'orange' });
+            resolve();
+        };
+    });
     socket.onclose = event => {
         loggedIn = false;
         form[0].placeholder = 'Input a username';
-        renderMessage('NOTICE:', 'Disconnected from server', { msgColor: 'orange' })
+        renderMessage(null, 'Disconnected from server', { msgColor: 'orange' })
     }
     socket.onerror = event => {
         console.log('WebSocket error: ', event);
@@ -133,14 +148,21 @@ function connectSocket() {
             }
         }
     };
+    await open;
+}
+async function disconnectSocket() {
+    if (socket.readyState === WebSocket.CLOSED) return;
+    socket.close();
+    await new Promise(resolve => socket.addEventListener('close', resolve));
 }
 connectSocket();
 
-reconnectBtn.addEventListener('click', e => {
+reconnectBtn.addEventListener('click', async (e) => {
     e.preventDefault();
     if (socket.readyState === WebSocket.CONNECTING) return;
     form[0].value = '';
     messages.innerHTML = '';
+    await disconnectSocket();
     connectSocket();
 });
 
@@ -195,7 +217,7 @@ form.addEventListener('submit', e => {
         const { readyState } = socket;
         switch (readyState) {
             case 0: {
-                renderMessage('NOTICE:', 'Connecting to server... please wait',
+                renderMessage(null, 'Connecting to server... please wait',
                     { msgColor: 'orange' }
                 );
                 break;
