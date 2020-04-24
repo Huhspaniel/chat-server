@@ -25,7 +25,7 @@
     <meta name="theme-color" content="#11a3e1"> -->
 </head>
 
-<body>
+<body ontouchstart>
     <div class="chat-box">
         <div class="messages"></div>
         <form class="user-input" action="/">
@@ -33,11 +33,16 @@
             <input type="text" placeholder="Input a username">
             <input type="submit" value="Send">
         </form>
-    	<div class="mobile-menu">
-    	    <button class="reconnect fas fa-sync-alt"></button>
-    	</div>
+        <div class="mobile-menu">
+            <button class="reconnect fas fa-sync-alt"></button>
+            <div class="dark-mode-wrapper">
+                Mode
+                <input class="dark-mode-checkbox" type="checkbox">
+            </div>
+        </div>
     </div>
 </body>
+<script src="lib/bodyScrollLock.min.js"></script>
 <script src="index.js"></script>
 
 </html>

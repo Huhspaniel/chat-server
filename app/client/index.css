@@ -1,17 +1,65 @@
+html,
 body {
+    height: 100%;
+    width: 100%;
+    --font-color: black;
+    --font-color-rgb: 0, 0, 0;
+    --box-color: rgb(242, 251, 255);
+    --input-background-color: rgba(16, 16, 16, 0.7);
+    --input-color: rgba(255, 255, 255, 0.75);
+    --input-placeholder-color: rgba(255, 255, 255, 0.2);
+    --gray: rgb(85, 85, 85);
+    --blue: rgb(0, 60, 255);
+    --message-even-background: rgba(0, 0, 0, 0.1);
+}
+
+body.dark-mode {
+    --font-color: white;
+    --font-color-rgb: 255, 255, 255;
+    --box-color: rgb(0, 0, 0);
+    --input-background-color: rgba(255, 255, 255, 0.7);
+    --input-color: rgba(0, 0, 0, .7);
+    --input-placeholder-color: rgba(0, 0, 0, .2);
+    --gray: rgb(150, 150, 150);
+    --blue: rgb(68, 112, 255);
+    --message-even-background: rgba(255, 255, 255, 0.15);
+}
+
+/* * {
+    transition:
+        background-color 100ms ease-in-out,
+        color 100ms ease-in-out;
+    -webkit-transition:
+        background-color 100ms ease-in-out,
+        color 100ms ease-in-out;
+} */
+
+body {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
     margin: 0;
     padding: 50px;
     box-sizing: border-box;
-    height: 100vh;
-    width: 100vw;
-    background-color: #101010;
+    /* height: 100vh;
+    width: 100vw; */
+    background-color: #252525;
     font-family: 'Krub', sans-serif;
     font-size: 17px;
+    color: var(--font-color);
 
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
 }
+
+#size-slider {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 800px;
+    padding: 20px;
+}
+
 .chat-box {
     position: relative;
     overflow: hidden;
@@ -21,33 +69,60 @@ body {
     width: 100%;
     height: 100%;
     max-width: 800px;
-    --box-color: rgb(242, 251, 255);
-    box-shadow: 0 0 5px var(--box-color);
+    box-shadow: 0 0 5px black;
     background-color: var(--box-color);
     border-radius: 5px;
 }
+
 button.reconnect {
+    cursor: pointer;
     position: absolute;
     background-color: transparent;
-    color: rgba(0, 0, 0, 1);
-    text-shadow: 0 0 1px black;
+    color: var(--font-color);
+    text-shadow: 0 0 1px var(--font-color);
     border: none;
     top: 0;
     right: 0;
-    padding: 5px;
-    margin: 6px;
-    font-size: 23px;
+    margin: calc(var(--size) * .20);
+    font-size: var(--font-size);
+    width: var(--size);
+    height: var(--size);
+    display: flex;
+    justify-content: center;
+    align-items: center;
     transition: transform .3s ease-out, padding .05s ease-in-out, font-size .05s ease-in-out;
     border-radius: 50%;
+    transition:
+        transform calc(var(--out-speed) * 1.8) ease-in-out,
+        padding var(--out-speed) ease-in-out,
+        font-size var(--out-speed) ease-in-out,
+        background-color var(--out-speed) ease-in-out,
+        box-shadow var(--out-speed) ease-in-out;
 }
+
 button.reconnect:hover {
-    cursor: pointer;
-    transform: rotate(360deg);
+    background-color: rgba(var(--font-color-rgb), 0.2);
+    box-shadow: 0 0 3px var(--font-color);
+    transition:
+        transform calc(var(--out-speed) * 1.8) ease-in-out,
+        padding var(--out-speed) ease-in-out,
+        font-size var(--out-speed) ease-in-out,
+        background-color var(--out-speed) ease-in-out,
+        box-shadow var(--out-speed) ease-in-out;
 }
+
 button.reconnect:active {
-    font-size: 26px;
-    padding: 3px;
+    font-size: calc(var(--font-size) * (8 / 9));
+    transform: rotate(-365deg);
+    background-color: rgba(var(--font-color-rgb), 0.3);
+    transition:
+        transform 0ms,
+        padding var(--in-speed) ease-in-out,
+        font-size var(--in-speed) ease-in-out,
+        background-color var(--in-speed) ease-in-out,
+        box-shadow var(--in-speed) ease-in-out;
 }
+
 button.reconnect:focus {
     outline: none;
 }
@@ -59,13 +134,16 @@ button.reconnect:focus {
     -webkit-overflow-scrolling: touch;
     word-break: break-word;
 }
+
 .message {
     padding: 8px;
     text-shadow: 1px 1px 1px rgba(0, 0, 0, .1);
 }
+
 .message:nth-last-child(even) {
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: var(--message-even-background);
 }
+
 .message span {
     font-weight: bold;
 }
@@ -74,35 +152,44 @@ button.reconnect:focus {
 .me {
     color: rgb(0, 187, 153);
 }
+
 .blue {
-    color: rgb(0, 60, 255);
+    color: var(--blue);
 }
+
 .gray {
-    color: rgb(85, 85, 85);
+    color: var(--gray);
 }
+
 .orange {
     color: rgb(223, 104, 0);
 }
+
 .dm {
     color: rgb(255, 0, 140);
 }
+
 .user {
     color: rgb(164, 91, 228);
 }
+
 .logout {
     color: rgb(145, 38, 19)
 }
+
 .error {
     color: rgb(218, 43, 43);
 }
 
 .user-input {
-    background-color: rgba(16, 16, 16, 0.7);
+    background-color: var(--input-background-color);
     display: grid;
     grid-template-columns: auto 1fr auto;
-    color: rgba(255, 255, 255, 0.75);
+    color: var(--input-color);
 }
-.user-input span, .user-input input {
+
+.user-input span,
+.user-input input {
     padding: 6px;
     margin: 0;
     border: none;
@@ -111,17 +198,21 @@ button.reconnect:focus {
     font-family: inherit;
     color: inherit;
 }
+
 .user-input span {
     padding-right: 0;
     display: flex;
     align-items: center;
 }
+
 .user-input input:focus {
     outline: none;
 }
+
 .user-input input::placeholder {
-    color: rgba(255, 255, 255, 0.2);
+    color: var(--input-placeholder-color);
 }
+
 .user-input input[type="submit"] {
     box-sizing: border-box;
     font-size: inherit;
@@ -134,48 +225,227 @@ button.reconnect:focus {
     border-radius: 0px;
     margin: 0;
 }
+
 .user-input input[type="submit"]:active {
     background-color: rgba(0, 0, 0, 0.5);
+}
+
+.mobile-menu {
+    --in-speed: 60ms;
+    --out-speed: 150ms;
+    --size: 40px;
+    --font-size: calc(var(--size) * .6);
+}
+
+.dark-mode-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    color: black;
+    padding: calc(var(--size) * .20);
+    background-color: rgba(255, 255, 255, 0.8);
+    border-bottom-right-radius: 2px;
+    border: 0px solid rgba(0, 0, 0, .8);
+    border-bottom-width: 1px;
+    border-right-width: 1px;
+}
+
+.dark-mode-checkbox {
+    --in-speed: 60ms;
+    --out-speed: 150ms;
+    cursor: pointer;
+    position: relative;
+    margin-left: 10px;
+    padding: calc(var(--size) * .25);
+    border: 1px solid rgba(0, 0, 0, .8);
+    box-shadow: 0 0 1px black;
+    border-radius: 2px;
+    background-color: white;
+    -webkit-appearance: none;
+    transition: background-color var(--out-speed) ease-in-out;
+    -webkit-transition: background-color var(--out-speed) ease-in-out;
+}
+
+.dark-mode-checkbox:checked {
+    background-color: black;
+}
+
+.dark-mode-checkbox:focus {
+    outline: none;
 }
 
 @media only screen and (max-width: 750px) {
     body {
         padding: 0;
+        background-color: white;
     }
+
+    body.dark-mode {
+        background-color: black;
+    }
+
+    body:not(.dark-mode) .chat-box {
+        background: linear-gradient(to top, var(--box-color), white);
+    }
+
+    .user-input input[type="submit"] {
+        display: none;
+    }
+
     button.reconnect {
-	position: relative;
-	font-size: 32px;
-	padding: 20px;
-	margin: 0;
-	width: 100%;
-        z-index: 1;
-	border-radius: 0px;
+        color: black;
+        position: relative;
+        text-shadow: none;
+        font-size: 32px;
+        padding: 20px;
+        width: auto;
+        height: auto;
+        display: initial;
+        margin: 0;
+        transition: transform calc(var(--out-speed) * 1.8) ease-in-out;
+        -webkit-transition: transform calc(var(--out-speed) * 1.8) ease-in-out;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
     }
+
     button.reconnect:hover {
-    	transform: none;
+        background: none;
+        box-shadow: none;
+        transition: transform calc(var(--out-speed) * 1.8) ease-in-out;
+        -webkit-transition: transform calc(var(--out-speed) * 1.8) ease-in-out;
     }
+
     button.reconnect:active {
-    	font-size: 30px;
-	padding: 21px;
+        font-size: 32px;
+        padding: 20px;
+        transform: rotate(-360deg);
+        background: none;
+        box-shadow: none;
+        transition: transform 0ms;
+        -webkit-transition: transform 0ms;
     }
+
+    button.reconnect::after {
+        content: "";
+        position: absolute;
+        top: 15%;
+        bottom: 15%;
+        right: 15%;
+        left: 15%;
+        border-radius: 50%;
+        transition:
+            background var(--out-speed) ease-in-out,
+            box-shadow var(--out-speed) ease-in-out,
+            top var(--out-speed) ease-in-out,
+            right var(--out-speed) ease-in-out,
+            bottom var(--out-speed) ease-in-out,
+            left var(--out-speed) ease-in-out;
+        -webkit-transition:
+            background var(--out-speed) ease-in-out,
+            box-shadow var(--out-speed) ease-in-out,
+            top var(--out-speed) ease-in-out,
+            right var(--out-speed) ease-in-out,
+            bottom var(--out-speed) ease-in-out,
+            left var(--out-speed) ease-in-out;
+    }
+
+    button.reconnect:active::after {
+        background-color: rgba(0, 0, 0, .2);
+        box-shadow: 0 0 3px black;
+        top: 5%;
+        right: 5%;
+        bottom: 5%;
+        left: 5%;
+        transition:
+            background var(--in-speed) ease-in-out,
+            box-shadow var(--in-speed) ease-in-out,
+            top var(--in-speed) ease-in-out,
+            right var(--in-speed) ease-in-out,
+            bottom var(--in-speed) ease-in-out,
+            left var(--in-speed) ease-in-out;
+        -webkit-transition:
+            background var(--in-speed) ease-in-out,
+            box-shadow var(--in-speed) ease-in-out,
+            top var(--in-speed) ease-in-out,
+            right var(--in-speed) ease-in-out,
+            bottom var(--in-speed) ease-in-out,
+            left var(--in-speed) ease-in-out;
+    }
+
     .chat-box {
-	width: 100vw;
-	height: 100vh;
+        width: 100vw;
+        height: 100vh;
         max-width: none;
-	border-radius: 0px;
-	grid-template-rows: 1fr auto auto;
+        border-radius: 0px;
+        grid-template-rows: 1fr auto auto;
     }
+
     .user-input {
         font-size: 18px;
     }
+
     .mobile-menu {
+        position: relative;
         display: flex;
-	justify-content: center;
-	background-color: #f0f0f0;
-	box-shadow: 0 0 3px #000000;
-	transition: background-color .05s ease-in-out;
+        justify-content: space-between;
+        align-items: center;
+        background-color: white;
+        box-shadow: 0 0 3px #000000;
     }
-    .mobile-menu:active {
-    	background-color: #e0e0e0;
+
+    .dark-mode-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        color: black;
+        border: none;
+        background: none;
+        padding: 20px;
+    }
+
+    .dark-mode-checkbox {
+        --in-speed: 60ms;
+        --out-speed: 150ms;
+        position: relative;
+        padding: 12px;
+        border: 1px solid rgba(0, 0, 0, .8);
+        box-shadow: 0 0 1px black;
+        border-radius: 2px;
+        background-color: white;
+        -webkit-appearance: none;
+        transition: background-color var(--out-speed) ease-in-out;
+        -webkit-transition: background-color var(--out-speed) ease-in-out;
+    }
+
+    .dark-mode-checkbox:checked {
+        background-color: black;
+    }
+
+    .dark-mode-checkbox:focus {
+        outline: none;
+    }
+
+    .dark-mode-checkbox::after {
+        content: "";
+        position: absolute;
+        top: -30%;
+        bottom: -30%;
+        right: -30%;
+        left: -30%;
+        border-radius: 50%;
+        transition: all var(--out-speed) ease-in-out;
+        -webkit-transition: all var(--out-speed) ease-in-out;
+    }
+
+    .dark-mode-checkbox:active::after {
+        background-color: rgba(0, 0, 0, .2);
+        box-shadow: 0 0 3px black;
+        top: -70%;
+        right: -70%;
+        bottom: -70%;
+        left: -70%;
+        transition: all var(--in-speed) ease-in-out;
+        -webkit-transition: all var(--in-speed) ease-in-out;
     }
 }

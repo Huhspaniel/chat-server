@@ -11,21 +11,26 @@ const commands = {
             socket.emit(
                 'info',
                 `<p style="padding-left: 10px;">${cmdDesc.dm}</p>`
-            )
-        } else if (!msg) {
-            return;
+            );
         } else {
             if (username.charAt(0) === '@') username = username.slice(1);
             const to = chatroom.users[username];
             const from = socket;
             if (to) {
+                if (!msg) {
+                    socket.emit(
+                        'info',
+                        `<p style="padding-left: 10px;">${cmdDesc.dm}</p>`
+                    );
+                    return;
+                }
                 if (to === from) {
                     socket.emit('dm', from.username, to.username, msg);
                 } else {
                     to.emit('dm', from.username, to.username, msg);
                     from.emit('dm', from.username, to.username, msg);
                 }
-            } else {
+            } else if (!to) {
                 from.emit('server-message', `User "${username}" does not exist or is not online`);
             }
         }
